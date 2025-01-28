@@ -18,6 +18,7 @@ import { LineGraph } from "@/components/LineGraph";
 import { BarGraph } from "@/components/BarGraph";
 import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
+import { createAgiIndex } from "@/lib/createIndex";
 
 const createSafeDateFormatter = (formatString: string) => (date: string) => {
   try {
@@ -102,7 +103,9 @@ export default function Home() {
   > | null>(null);
   const [manifoldGroupedData, setManifoldGroupedData] =
     useState<ManifoldGroupedData | null>(null);
-
+  const [index, setIndex] = useState<ReturnType<typeof createAgiIndex> | null>(
+    null,
+  );
   useEffect(() => {
     fetchKalshiData({
       seriesTicker: "KXAITURING",
@@ -134,6 +137,23 @@ export default function Home() {
       });
   }, []);
 
+  useEffect(() => {
+    const fetchHistory = async () => {
+      const res = await fetch("/api/manifold-grouped-history");
+      const data = await res.json();
+      console.log("Manifold history response:", data);
+    };
+    fetchHistory();
+  }, []);
+
+  // Create Index
+  useEffect(() => {
+    if (weakAgiData && fullAgiData) {
+      const result = createAgiIndex(weakAgiData.data, fullAgiData.data);
+      setIndex(result);
+    }
+  }, [weakAgiData, fullAgiData]);
+
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
       <header className="mx-auto mb-8 w-full max-w-6xl text-center">
@@ -146,6 +166,33 @@ export default function Home() {
           </MobileFriendlyTooltip>
         </h1>
       </header>
+
+      {index && (
+        <div className="mx-auto mb-6 w-full max-w-6xl space-y-6">
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <LineGraph
+              data={index.index}
+              color="#4f46e5"
+              label="AGI Index"
+              xAxisProps={{
+                tickFormatter: formatMonthYear,
+              }}
+              yAxisProps={{
+                tickFormatter: formatYearFromTimestamp,
+              }}
+              tooltip={
+                <CustomTooltip
+                  formatter={(value) => [
+                    formatFullDateFromTimestamp(value),
+                    "",
+                  ]}
+                  labelFormatter={formatMonthDayYear}
+                />
+              }
+            />
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto w-full max-w-6xl space-y-6">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
@@ -255,7 +302,7 @@ export default function Home() {
             {manifoldGroupedData && (
               <BarGraph
                 data={transformManifoldDataForChart(manifoldGroupedData)}
-                color="#f97316"
+                color="#4f46e5"
                 label="Probability (%)"
                 formatValue={(v) => `${v.toFixed(1)}%`}
                 tickFormatter={(text) => text}
