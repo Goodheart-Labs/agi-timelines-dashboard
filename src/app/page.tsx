@@ -503,6 +503,37 @@ export default function Home() {
             <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
               <Collapsible.Trigger className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
                 <h4 className="text-lg font-medium">
+                  Why no specific definition of AGI?
+                </h4>
+                <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
+              </Collapsible.Trigger>
+              <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
+                <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                  <p>
+                    There is significant disagreement about what constitutes
+                    AGI. Rather than pick one definition, we aggregate
+                    predictions across different definitions to capture the
+                    broader expert consensus on transformative AI timelines.
+                  </p>
+                  <p>
+                    It is always going to be possible to argue that the set of
+                    averaged definitions is incorrectly weighted. To reduce
+                    biase I seek to accept all, long-term, repeating forecasts
+                    of AGI and then weight them equally. Perhaps we will
+                    down-weight some if some if a single institution releases
+                    many different AI forecasts
+                  </p>
+                  <p>
+                    If you disagree, please get in touch. If you know of some
+                    other repeating forecast of AGI that I have not included,
+                    let me know.
+                  </p>
+                </div>
+              </Collapsible.Content>
+            </Collapsible.Root>
+            <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
+              <Collapsible.Trigger className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
+                <h4 className="text-lg font-medium">
                   How is the risk index calculated?
                 </h4>
                 <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
