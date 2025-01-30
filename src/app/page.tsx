@@ -79,16 +79,16 @@ function GraphTitle({
   );
 
   return (
-    <div className="mb-2 grid gap-1">
+    <div className="mb-4 grid gap-1">
       <div className="inline-flex items-center justify-between gap-1">
         <div className="flex w-full items-center justify-start gap-2">
           {TitleComponent}
-          {children}
         </div>
         {tooltipContent && (
           <MobileFriendlyTooltip>{tooltipContent}</MobileFriendlyTooltip>
         )}
       </div>
+      {children}
     </div>
   );
 }
@@ -99,6 +99,9 @@ export default function Home() {
     ReturnType<typeof fetchMetaculusData>
   > | null>(null);
   const [fullAgiData, setFullAgiData] = useState<Awaited<
+    ReturnType<typeof fetchMetaculusData>
+  > | null>(null);
+  const [turingTestData, setTuringTestData] = useState<Awaited<
     ReturnType<typeof fetchMetaculusData>
   > | null>(null);
   const [manifoldGroupedData, setManifoldGroupedData] =
@@ -126,6 +129,12 @@ export default function Home() {
 
     fetchMetaculusData(5121)
       .then(setFullAgiData)
+      .catch(() => {
+        // No error handling needed
+      });
+
+    fetchMetaculusData(11861)
+      .then(setTuringTestData)
       .catch(() => {
         // No error handling needed
       });
@@ -160,9 +169,14 @@ export default function Home() {
         <h1 className="my-4 text-2xl font-bold md:text-5xl">
           When will we achieve AGI?{" "}
           <MobileFriendlyTooltip>
-            When will we develop artificial general intelligence (AGI) - AI
-            systems that match or exceed human-level intelligence across most
-            domains?
+            Artificial General Intelligence (AGI) demotes a highly competent
+            computer system that can perform a broad set of human tasks.
+            Definitions vary both as to the quality of performance (from median
+            human to as good as the best humans) and the range (from most tasks
+            to all tasks). The broad variety of definitions presents a problem
+            for forecasts. This dashboard sidesteps this problem by taking the
+            median of a set of predictions based on different definitions. See
+            the FAQ for more.
           </MobileFriendlyTooltip>
         </h1>
       </header>
@@ -202,10 +216,50 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
-              title="Date Weakly General AI is Publicly Known"
+              title='Date of "weakly general AI" - Metaculus'
               sourceUrl="https://www.metaculus.com/questions/3479/date-weakly-general-ai-is-publicly-known/"
-              tooltipContent="When will we develop artificial general intelligence (AGI) - AI systems that match or exceed human-level intelligence across most domains?"
-            />
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>A summary of Metaculus&apos; resolution criteria:</p>
+                  <p>
+                    For these purposes they define &quot;AI system&quot; as a
+                    single unified software system that can satisfy the
+                    following criteria, all easily completable by a typical
+                    college-educated human:
+                  </p>
+                  <ul className="list-disc space-y-1 pl-4">
+                    <li>
+                      Able to reliably pass a Turing test of the type that would
+                      win the Loebner Silver Prize
+                    </li>
+                    <li>
+                      Able to score 90% or more on a robust version of the
+                      Winograd Schema Challenge
+                    </li>
+                    <li>
+                      Be able to score 75th percentile on all the full
+                      mathematics section of a circa-2015-2020 standard SAT exam
+                    </li>
+                    <li>
+                      Be able to learn the classic Atari game
+                      &quot;Montezuma&apos;s revenge&quot; and explore all 24
+                      rooms in under 100 hours of play
+                    </li>
+                  </ul>
+                  <p>
+                    The system must be integrated enough to explain its
+                    reasoning and verbally report its progress across all tasks.
+                  </p>
+                </div>
+              }
+            >
+              <p className="text-sm text-gray-500">
+                From the forecasting site Metaculus, full title: &quot;When will
+                the first weakly general AI system be devised, tested, and
+                publicly announced?&quot;
+              </p>
+            </GraphTitle>
+
             <LineGraph
               data={weakAgiData ? weakAgiData.data : []}
               color="#10b981"
@@ -237,10 +291,51 @@ export default function Home() {
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
-              title="Date of Artificial General Intelligence"
+              title='Date of "general AI" - Metaculus'
               sourceUrl="https://www.metaculus.com/questions/5121/date-of-artificial-general-intelligence/"
-              tooltipContent="When will the first general AI system be devised, tested, and publicly announced?"
-            />
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>A summary of Metaculus&apos; resolution criteria:</p>
+                  <p>
+                    They define &quot;AI system&quot; as a single unified system
+                    that can:
+                  </p>
+                  <ul className="list-disc space-y-1 pl-4">
+                    <li>
+                      Pass a 2-hour adversarial Turing test with text, images,
+                      and audio
+                    </li>
+                    <li>
+                      Assemble a complex model car from instructions
+                      (demonstrating robotic capability)
+                    </li>
+                    <li>
+                      Score 75%+ on every task and 90%+ mean accuracy across the
+                      Hendrycks Q&A dataset
+                    </li>
+                    <li>
+                      Achieve 90%+ accuracy on interview-level programming
+                      problems
+                    </li>
+                  </ul>
+                  <p>
+                    The system must be truly unified - able to explain its
+                    reasoning and describe its progress across all tasks.
+                  </p>
+                  <p>
+                    Resolution will come via, direct demostration of such,
+                    confident credible statements from developers or judgement
+                    by a special panel composed by Metaculus.
+                  </p>
+                </div>
+              }
+            >
+              <p className="text-sm text-gray-500">
+                From the forecasting site Metaculus, full title: &quot;When will
+                the first general AI system be devised, tested, and publicly
+                announced?&quot;
+              </p>
+            </GraphTitle>
             <LineGraph
               data={fullAgiData ? fullAgiData.data : []}
               color="#06b6d4"
@@ -255,6 +350,82 @@ export default function Home() {
                   ? [
                       fullAgiData.question.scaling.range_min,
                       fullAgiData.question.scaling.range_max,
+                    ]
+                  : undefined,
+              }}
+              tooltip={
+                <CustomTooltip
+                  formatter={(value) => [
+                    formatFullDateFromTimestamp(value),
+                    "",
+                  ]}
+                  labelFormatter={formatMonthDayYear}
+                />
+              }
+            />
+          </div>
+
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
+              title='Date of AI passing "difficult Turing Test" - Metaculus'
+              sourceUrl="https://www.metaculus.com/questions/11861/when-will-ai-pass-a-difficult-turing-test/"
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>A summary of Metaculus&apos; resolution criteria:</p>
+                  <p>
+                    The question resolves when an AI system passes a
+                    high-quality Turing test that demonstrates extensive
+                    knowledge, natural language mastery, common sense, and
+                    human-level reasoning. The test must be:
+                  </p>
+                  <ul className="list-disc space-y-1 pl-4">
+                    <li>
+                      <strong>Long:</strong> At least 2 consecutive hours of
+                      communication
+                    </li>
+                    <li>
+                      <strong>Informed:</strong> Judges must have PhD-level
+                      understanding of AI limitations, and confederates must
+                      have PhD-level expertise in STEM
+                    </li>
+                    <li>
+                      <strong>Adversarial:</strong> Judges actively try to
+                      unmask the AI, confederates demonstrate their humanity
+                    </li>
+                    <li>
+                      <strong>Passing criteria:</strong> At least 50% of judges
+                      must rate the AI as more human than 33% of human
+                      confederates
+                    </li>
+                  </ul>
+                  <p>
+                    All participants must understand their role is to ensure the
+                    AI fails. Tests with cheating or conflicts of interest will
+                    be excluded.
+                  </p>
+                </div>
+              }
+            >
+              <p className="text-sm text-gray-500">
+                From the forecasting site Metaculus, full title: &quot;When will
+                an AI first pass a long, informed, adversarial Turing
+                test?&quot;
+              </p>
+            </GraphTitle>
+            <LineGraph
+              data={turingTestData ? turingTestData.data : []}
+              color="#0ea5e9"
+              label="Metaculus Prediction (Year)"
+              xAxisProps={{
+                tickFormatter: formatMonthYear,
+              }}
+              yAxisProps={{
+                tickFormatter: formatYearFromTimestamp,
+                scale: "linear",
+                domain: turingTestData
+                  ? [
+                      turingTestData.question.scaling.range_min,
+                      turingTestData.question.scaling.range_max,
                     ]
                   : undefined,
               }}
@@ -329,6 +500,37 @@ export default function Home() {
           </h3>
 
           <div className="space-y-4">
+            <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
+              <Collapsible.Trigger className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
+                <h4 className="text-lg font-medium">
+                  Why no specific definition of AGI?
+                </h4>
+                <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
+              </Collapsible.Trigger>
+              <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
+                <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                  <p>
+                    There is significant disagreement about what constitutes
+                    AGI. Rather than pick one definition, we aggregate
+                    predictions across different definitions to capture the
+                    broader expert consensus on transformative AI timelines.
+                  </p>
+                  <p>
+                    It is always going to be possible to argue that the set of
+                    averaged definitions is incorrectly weighted. To reduce
+                    biase I seek to accept all, long-term, repeating forecasts
+                    of AGI and then weight them equally. Perhaps we will
+                    down-weight some if some if a single institution releases
+                    many different AI forecasts
+                  </p>
+                  <p>
+                    If you disagree, please get in touch. If you know of some
+                    other repeating forecast of AGI that I have not included,
+                    let me know.
+                  </p>
+                </div>
+              </Collapsible.Content>
+            </Collapsible.Root>
             <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
               <Collapsible.Trigger className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
                 <h4 className="text-lg font-medium">
