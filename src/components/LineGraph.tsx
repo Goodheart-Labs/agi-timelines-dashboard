@@ -10,6 +10,7 @@ import {
   YAxisProps,
   Tooltip,
   TooltipProps,
+  LineProps,
 } from "recharts";
 import { ChartDataPoint } from "../lib/types";
 
@@ -20,6 +21,7 @@ export function LineGraph({
   xAxisProps = {},
   yAxisProps = {},
   tooltip,
+  lineProps = {},
 }: {
   data: ChartDataPoint[];
   color: string;
@@ -27,6 +29,7 @@ export function LineGraph({
   xAxisProps?: Partial<XAxisProps>;
   yAxisProps?: Partial<YAxisProps>;
   tooltip?: TooltipProps<number, string>["content"];
+  lineProps?: Omit<LineProps, "ref">;
 }) {
   // Check if all data points have range values when distribution is requested
   const hasDistribution = data.every((point) => point.range !== undefined);
@@ -97,6 +100,7 @@ export function LineGraph({
             dot={false}
             activeDot={{ r: 8 }}
             isAnimationActive={false}
+            {...lineProps}
           />
         </ComposedChart>
       </ResponsiveContainer>

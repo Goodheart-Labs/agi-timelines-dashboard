@@ -193,6 +193,10 @@ export default function Home() {
               }}
               yAxisProps={{
                 tickFormatter: formatYearFromTimestamp,
+                domain: [
+                  new Date("2020-01-02").getTime() / 1000,
+                  new Date("2130-01-02").getTime() / 1000,
+                ],
               }}
               tooltip={
                 <CustomTooltip
@@ -203,6 +207,10 @@ export default function Home() {
                   labelFormatter={formatMonthDayYear}
                 />
               }
+              lineProps={{
+                min: 2020,
+                max: 2130,
+              }}
             />
           </div>
         </div>
