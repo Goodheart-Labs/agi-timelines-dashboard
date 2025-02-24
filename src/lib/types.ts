@@ -125,3 +125,31 @@ export type ManifoldResponse = {
   lastUpdatedTime: number;
   slug: string;
 };
+
+export type Bet = {
+  isFilled: boolean;
+  amount: number;
+  userId: string;
+  contractId: string;
+  probBefore: number;
+  isCancelled: boolean;
+  outcome: string;
+  fees: {
+    creatorFee: number;
+    liquidityFee: number;
+    platformFee: number;
+  };
+  shares: number;
+  limitProb: number;
+  id: string;
+  loanAmount: number;
+  orderAmount: number;
+  probAfter: number;
+  createdTime: number;
+  fills: Array<{
+    timestamp: number;
+    matchedBetId: string;
+    amount: number;
+    shares: number;
+  }>;
+};

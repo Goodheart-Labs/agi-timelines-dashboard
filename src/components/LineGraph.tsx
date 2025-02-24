@@ -65,7 +65,6 @@ export function LineGraph({
               fill: "currentColor",
               opacity: 0.65,
             }}
-            // tickFormatter={tickFormatter}
             stroke="currentColor"
             opacity={0.2}
             {...xAxisProps}
@@ -77,7 +76,6 @@ export function LineGraph({
               fill: "currentColor",
               opacity: 0.65,
             }}
-            // tickFormatter={(value) => formatValue(value)}
             stroke="currentColor"
             opacity={0.2}
             {...yAxisProps}

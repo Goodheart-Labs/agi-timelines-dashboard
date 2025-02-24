@@ -19,6 +19,7 @@ import { BarGraph } from "@/components/BarGraph";
 import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { createAgiIndex } from "@/lib/createIndex";
+import { getManifoldHistoricalData } from "@/lib/services/manifold-historical";
 
 const createSafeDateFormatter = (formatString: string) => (date: string) => {
   try {
@@ -139,20 +140,17 @@ export default function Home() {
         // No error handling needed
       });
 
+    getManifoldHistoricalData()
+      .then(console.log)
+      .catch(() => {
+        // No error handling needed
+      });
+
     getManifoldGroupedData("agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708")
       .then(setManifoldGroupedData)
       .catch(() => {
         // No error handling needed
       });
-  }, []);
-
-  useEffect(() => {
-    const fetchHistory = async () => {
-      const res = await fetch("/api/manifold-grouped-history");
-      const data = await res.json();
-      console.log("Manifold history response:", data);
-    };
-    fetchHistory();
   }, []);
 
   // Create Index
@@ -451,6 +449,28 @@ export default function Home() {
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
+              title="When will AGI arrive? (Manifold Markets Distribution)"
+              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
+              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
+            />
+            {manifoldGroupedData && (
+              <BarGraph
+                data={transformManifoldDataForChart(manifoldGroupedData)}
+                color="#4f46e5"
+                label="Probability (%)"
+                formatValue={(v) => `${v.toFixed(1)}%`}
+                tickFormatter={(text) => text}
+                tooltipLabelFormatter={(text) => text}
+              />
+            )}
+          </div>
+
+          <h3 className="col-span-2 mt-6 text-xl font-semibold text-gray-700 dark:text-gray-300">
+            Not included in index:
+          </h3>
+
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
               title="AI passes Turing test before 2030?"
               sourceUrl="https://kalshi.com/markets/kxaituring/ai-turing-test"
               tooltipContent=""
@@ -466,28 +486,6 @@ export default function Home() {
                 domain: [60, 80],
               }}
             />
-          </div>
-
-          <h3 className="col-span-2 mt-6 text-xl font-semibold text-gray-700 dark:text-gray-300">
-            Not included in index:
-          </h3>
-
-          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <GraphTitle
-              title="When will AGI arrive? (Manifold Markets Distribution)"
-              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
-              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
-            />
-            {manifoldGroupedData && (
-              <BarGraph
-                data={transformManifoldDataForChart(manifoldGroupedData)}
-                color="#4f46e5"
-                label="Probability (%)"
-                formatValue={(v) => `${v.toFixed(1)}%`}
-                tickFormatter={(text) => text}
-                tooltipLabelFormatter={(text) => text}
-              />
-            )}
           </div>
         </div>
       </main>

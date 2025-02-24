@@ -35,17 +35,12 @@ export function createAgiIndex(
       new Date(fullAgiData[fullAgiData.length - 1].date).getTime(),
     ) / 1000;
 
-  console.log("Start Date:", startDate / 1000);
-  console.log("End Date:", endDate / 1000);
-
   const index: ChartDataPoint[] = [];
 
   let currentDate = startDate;
   const weakIndex = 0;
   const fullIndex = 0;
   while (currentDate <= endDate) {
-    console.log("Current Date:", currentDate);
-
     // Get most recent weak and full data points before the current date
     let nextWeakIndex = weakIndex;
     let nextFullIndex = fullIndex;
