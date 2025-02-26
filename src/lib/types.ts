@@ -131,6 +131,7 @@ export type Bet = {
   amount: number;
   userId: string;
   contractId: string;
+  answerId: string;
   probBefore: number;
   isCancelled: boolean;
   outcome: string;

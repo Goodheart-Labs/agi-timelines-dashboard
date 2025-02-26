@@ -107,6 +107,9 @@ export default function Home() {
   > | null>(null);
   const [manifoldGroupedData, setManifoldGroupedData] =
     useState<ManifoldGroupedData | null>(null);
+  const [manifoldHistoricalData, setManifoldHistoricalData] = useState<Awaited<
+    ReturnType<typeof getManifoldHistoricalData>
+  > | null>(null);
   const [index, setIndex] = useState<ReturnType<typeof createAgiIndex> | null>(
     null,
   );
@@ -140,8 +143,10 @@ export default function Home() {
         // No error handling needed
       });
 
-    getManifoldHistoricalData()
-      .then(console.log)
+    getManifoldHistoricalData(
+      "agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708",
+    )
+      .then(setManifoldHistoricalData)
       .catch(() => {
         // No error handling needed
       });
@@ -445,6 +450,33 @@ export default function Home() {
                 />
               }
             />
+          </div>
+
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
+              title="When will AGI arrive? (Manifold Markets Distribution)"
+              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
+              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
+            />
+            {manifoldHistoricalData && (
+              <LineGraph
+                data={manifoldHistoricalData}
+                color="#4f46e5"
+                label="Manifold Prediction (Year)"
+                xAxisProps={{
+                  tickFormatter: formatMonthYear,
+                }}
+                yAxisProps={{
+                  domain: [2020, 2055],
+                }}
+                tooltip={
+                  <CustomTooltip
+                    formatter={(value) => [value.toString(), ""]}
+                    labelFormatter={formatMonthDayYear}
+                  />
+                }
+              />
+            )}
           </div>
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
