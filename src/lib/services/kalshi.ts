@@ -1,4 +1,4 @@
-import { KalshiResponse, ChartDataPoint } from "../types";
+import { ChartDataPoint, KalshiResponse } from "../types";
 
 export async function fetchKalshiData({
   marketTicker,

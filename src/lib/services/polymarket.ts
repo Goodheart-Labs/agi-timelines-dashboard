@@ -1,4 +1,4 @@
-import { PolymarketResponse, ChartDataPoint } from "../types";
+import { ChartDataPoint, PolymarketResponse } from "../types";
 
 export async function fetchPolymarketData(
   slug: string,

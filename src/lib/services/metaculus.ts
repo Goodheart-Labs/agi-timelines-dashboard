@@ -1,4 +1,4 @@
-import { MetaculusResponse, ChartDataPoint } from "../types";
+import { ChartDataPoint, MetaculusResponse } from "../types";
 
 export async function fetchMetaculusData(questionId: number): Promise<{
   question: MetaculusResponse["question"];

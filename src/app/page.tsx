@@ -7,7 +7,7 @@ import {
   ManifoldGroupedData,
   transformManifoldDataForChart,
 } from "../lib/services/manifold-grouped";
-import { LinkIcon, ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, LinkIcon } from "lucide-react";
 import Image from "next/image";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { cn } from "@/lib/utils";
