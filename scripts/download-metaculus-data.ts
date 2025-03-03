@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 const METACULUS_API = "https://www.metaculus.com/api";
-const QUESTION_ID = 30960; // From config.ts
+const QUESTION_ID = 3479; // From config.ts
 const OUTPUT_DIR = path.join(process.cwd(), "data");
 
 // You'll need to get this from your browser after logging into Metaculus
@@ -15,9 +15,10 @@ if (!process.env.METACULUS_API_KEY) {
 async function downloadMetaculusData() {
   try {
     const params = new URLSearchParams({
-      aggregation_methods: "unweighted",
+      aggregation_methods: "recency_weighted",
       minimize: "false",
       include_comments: "false",
+      // include_scores: "true",
     });
 
     const url = `${METACULUS_API}/posts/${QUESTION_ID}/download-data/?${params}`;
