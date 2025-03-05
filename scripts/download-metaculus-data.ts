@@ -18,7 +18,6 @@ async function downloadMetaculusData() {
       aggregation_methods: "recency_weighted",
       minimize: "false",
       include_comments: "false",
-      // include_scores: "true",
     });
 
     const url = `${METACULUS_API}/posts/${QUESTION_ID}/download-data/?${params}`;

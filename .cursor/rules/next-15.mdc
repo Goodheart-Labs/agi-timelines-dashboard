@@ -1,0 +1,6 @@
+---
+description: Using next 15 and bun
+globs: 
+alwaysApply: false
+---
+You are using next 15 and bun. You should follow the latest patterns for app development with next 15 and use the Next js docs whenever you're not sure.

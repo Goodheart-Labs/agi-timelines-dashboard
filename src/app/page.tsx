@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { createAgiIndex } from "@/lib/createIndex";
 import { getManifoldHistoricalData } from "@/lib/services/manifold-historical";
+import { downloadMetaculusData } from "@/lib/services/metaculus-download";
 
 const createSafeDateFormatter = (formatString: string) => (date: string) => {
   try {
@@ -113,6 +114,11 @@ export default function Home() {
   const [index, setIndex] = useState<ReturnType<typeof createAgiIndex> | null>(
     null,
   );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_metaculusDownloadData, setMetaculusDownloadData] = useState<
+    Awaited<ReturnType<typeof downloadMetaculusData>>
+  >({ byYear: [], datapoints: [] });
+
   useEffect(() => {
     fetchKalshiData({
       seriesTicker: "KXAITURING",
@@ -153,6 +159,12 @@ export default function Home() {
 
     getManifoldGroupedData("agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708")
       .then(setManifoldGroupedData)
+      .catch(() => {
+        // No error handling needed
+      });
+
+    downloadMetaculusData(3479)
+      .then(setMetaculusDownloadData)
       .catch(() => {
         // No error handling needed
       });
