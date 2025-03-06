@@ -1,16 +1,16 @@
 import {
+  Area,
+  CartesianGrid,
   ComposedChart,
   Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
+  LineProps,
   ResponsiveContainer,
-  Area,
-  XAxisProps,
-  YAxisProps,
   Tooltip,
   TooltipProps,
-  LineProps,
+  XAxis,
+  XAxisProps,
+  YAxis,
+  YAxisProps,
 } from "recharts";
 import { ChartDataPoint } from "../lib/types";
 

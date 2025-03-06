@@ -33,6 +33,8 @@ export type MetaculusResponse = {
         }>;
       };
     };
+    scheduled_close_time: string;
+    scheduled_resolve_time: string;
   };
 };
 
@@ -153,4 +155,16 @@ export type Bet = {
     amount: number;
     shares: number;
   }>;
+};
+
+export type MetaculusForecast = {
+  "Question ID": string;
+  "Forecaster ID": string;
+  "Forecaster Username": string;
+  "Start Time": string;
+  "End Time": string;
+  "Forecaster Count": string;
+  "Probability Yes": string;
+  "Probability Yes Per Category": string;
+  "Continuous CDF": string;
 };

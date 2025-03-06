@@ -3,7 +3,7 @@ import { Bet, ChartDataPoint } from "../types";
 export async function getManifoldHistoricalData(slug: string) {
   const searchParams = new URLSearchParams();
   searchParams.set("slug", slug);
-  const response = await fetch(`/api/manifold-grouped-history?${searchParams}`);
+  const response = await fetch(`/api/manifold-historical?${searchParams}`);
   const { bets } = (await response.json()) as { bets: Bet[] };
 
   // get oldest bet

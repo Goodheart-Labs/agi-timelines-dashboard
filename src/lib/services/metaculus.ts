@@ -1,4 +1,4 @@
-import { MetaculusResponse, ChartDataPoint } from "../types";
+import { ChartDataPoint, MetaculusResponse } from "../types";
 
 export async function fetchMetaculusData(questionId: number): Promise<{
   question: MetaculusResponse["question"];
@@ -34,7 +34,7 @@ function transformMetaculusData(data: MetaculusResponse): ChartDataPoint[] {
 
   const points: ChartDataPoint[] = [];
 
-  const transform = getTransform(data);
+  const transform = getTransform(data.question.scaling);
 
   let index = 0;
   let currentDate = start;
@@ -65,7 +65,13 @@ function transformMetaculusData(data: MetaculusResponse): ChartDataPoint[] {
   return points;
 }
 
-export function getTransform(data: MetaculusResponse) {
+/**
+ * Returns a function which transforms a 0-1 value into the correct value
+ * based on the scaling of the question.
+ */
+export function getTransform(
+  scaling: MetaculusResponse["question"]["scaling"],
+) {
   function m() {
     return (t: number) => {
       return null == t;
@@ -74,7 +80,7 @@ export function getTransform(data: MetaculusResponse) {
 
   return (value: number) => {
     let t;
-    const { range_min, range_max, zero_point } = data.question.scaling;
+    const { range_min, range_max, zero_point } = scaling;
     if (m()(range_max) || m()(range_min)) return value;
     if (null !== zero_point) {
       const n = (range_max - zero_point) / (range_min - zero_point);
@@ -85,5 +91,36 @@ export function getTransform(data: MetaculusResponse) {
           ? value
           : range_min + (range_max - range_min) * value;
     return t;
+  };
+}
+
+/**
+ * Returns a function which transforms a scaled value into it's 0-1 value.
+ */
+export function getInverseTransform(
+  scaling: MetaculusResponse["question"]["scaling"],
+) {
+  function isNull(t: number) {
+    return null == t;
+  }
+
+  return (value: number) => {
+    const { range_min, range_max, zero_point } = scaling;
+    if (isNull(range_max) || isNull(range_min)) return value;
+
+    if (null !== zero_point) {
+      // Inverse of logarithmic scaling
+      const n = (range_max - zero_point) / (range_min - zero_point);
+      return (
+        Math.log(
+          ((value - range_min) * (n - 1)) / (range_max - range_min) + 1,
+        ) / Math.log(n)
+      );
+    } else {
+      // Inverse of linear scaling
+      return null === range_min || null === range_max
+        ? value
+        : (value - range_min) / (range_max - range_min);
+    }
   };
 }
