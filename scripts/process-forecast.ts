@@ -79,42 +79,42 @@ async function main() {
   //   cdfDataPoints[upper],
   // );
 
-  // // Get years of interest
-  // const startYear = getStartYear(questionData.scaling.range_min * 1000);
-  // const endYear = getEndYear(questionData.scaling.range_max * 1000);
+  // Get years of interest
+  const startYear = getStartYear(questionData.scaling.range_min * 1000);
+  const endYear = getEndYear(questionData.scaling.range_max * 1000);
 
-  // const results: { year: number; cdfValue: number; pdfValue: number }[] = [];
+  const results: { year: number; cdfValue: number; pdfValue: number }[] = [];
 
-  // // Loop through each year
-  // for (let year = startYear; year <= endYear; year++) {
-  //   // Create a new date from year
-  //   const date = new Date(year, 0, 1);
-  //   // Get the transformed value
-  //   const unitValue = inverseTransform(date.getTime() / 1000);
+  // Loop through each year
+  for (let year = startYear; year <= endYear; year++) {
+    // Create a new date from year
+    const date = new Date(year, 0, 1);
+    // Get the transformed value
+    const unitValue = inverseTransform(date.getTime() / 1000);
 
-  //   // Get the rough index
-  //   const roughIndex = unitValue / (1 / 200);
-  //   const lowerIndex = Math.floor(roughIndex);
-  //   const upperIndex = Math.ceil(roughIndex);
+    // Get the rough index
+    const roughIndex = unitValue / (1 / 200);
+    const lowerIndex = Math.floor(roughIndex);
+    const upperIndex = Math.ceil(roughIndex);
 
-  //   // Get the values at the lower and upper indices
-  //   const lowerValue = cdfDataPoints[lowerIndex];
-  //   const upperValue = cdfDataPoints[upperIndex];
+    // Get the values at the lower and upper indices
+    const lowerValue = cdfDataPoints[lowerIndex];
+    const upperValue = cdfDataPoints[upperIndex];
 
-  //   // Interpolate between the two values
-  //   const cdfValue =
-  //     lowerValue + (upperValue - lowerValue) * (roughIndex - lowerIndex);
+    // Interpolate between the two values
+    const cdfValue =
+      lowerValue + (upperValue - lowerValue) * (roughIndex - lowerIndex);
 
-  //   results.push({
-  //     year,
-  //     cdfValue,
-  //     pdfValue: cdfValue - (results[results.length - 1]?.cdfValue || 0),
-  //   });
-  // }
+    results.push({
+      year,
+      cdfValue,
+      pdfValue: cdfValue - (results[results.length - 1]?.cdfValue || 0),
+    });
+  }
 
-  // results.forEach((result) => {
-  //   console.log(result.year, (result.pdfValue * 100).toFixed(4) + "%");
-  // });
+  results.forEach((result) => {
+    console.log(result.year, (result.pdfValue * 100).toFixed(4) + "%");
+  });
 }
 
 main().catch(console.error);

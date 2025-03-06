@@ -18,7 +18,6 @@ import { LineGraph } from "@/components/LineGraph";
 import { BarGraph } from "@/components/BarGraph";
 import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
-import { createAgiIndex } from "@/lib/createIndex";
 import { getManifoldHistoricalData } from "@/lib/services/manifold-historical";
 import { downloadMetaculusData } from "@/lib/services/metaculus-download";
 
@@ -97,11 +96,8 @@ function GraphTitle({
 
 export default function Home() {
   const [kalshiData, setKalshiData] = useState<ChartDataPoint[]>([]);
-  const [weakAgiData, setWeakAgiData] = useState<Awaited<
-    ReturnType<typeof fetchMetaculusData>
-  > | null>(null);
   const [fullAgiData, setFullAgiData] = useState<Awaited<
-    ReturnType<typeof fetchMetaculusData>
+    ReturnType<typeof downloadMetaculusData>
   > | null>(null);
   const [turingTestData, setTuringTestData] = useState<Awaited<
     ReturnType<typeof fetchMetaculusData>
@@ -111,13 +107,10 @@ export default function Home() {
   const [manifoldHistoricalData, setManifoldHistoricalData] = useState<Awaited<
     ReturnType<typeof getManifoldHistoricalData>
   > | null>(null);
-  const [index, setIndex] = useState<ReturnType<typeof createAgiIndex> | null>(
-    null,
-  );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_metaculusDownloadData, setMetaculusDownloadData] = useState<
-    Awaited<ReturnType<typeof downloadMetaculusData>>
-  >({ byYear: [], datapoints: [] });
+
+  const [metWeaklyGeneralAI, setMetWeaklyGeneralAI] = useState<Awaited<
+    ReturnType<typeof downloadMetaculusData>
+  > | null>(null);
 
   useEffect(() => {
     fetchKalshiData({
@@ -131,13 +124,7 @@ export default function Home() {
         // No error handling needed
       });
 
-    fetchMetaculusData(3479)
-      .then(setWeakAgiData)
-      .catch(() => {
-        // No error handling needed
-      });
-
-    fetchMetaculusData(5121)
+    downloadMetaculusData(5121)
       .then(setFullAgiData)
       .catch(() => {
         // No error handling needed
@@ -164,19 +151,14 @@ export default function Home() {
       });
 
     downloadMetaculusData(3479)
-      .then(setMetaculusDownloadData)
+      .then((data) => {
+        console.log(data);
+        setMetWeaklyGeneralAI(data);
+      })
       .catch(() => {
         // No error handling needed
       });
   }, []);
-
-  // Create Index
-  useEffect(() => {
-    if (weakAgiData && fullAgiData) {
-      const result = createAgiIndex(weakAgiData.data, fullAgiData.data);
-      setIndex(result);
-    }
-  }, [weakAgiData, fullAgiData]);
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
@@ -195,41 +177,6 @@ export default function Home() {
           </MobileFriendlyTooltip>
         </h1>
       </header>
-
-      {index && (
-        <div className="mx-auto mb-6 w-full max-w-6xl space-y-6">
-          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <LineGraph
-              data={index.index}
-              color="#4f46e5"
-              label="AGI Index"
-              xAxisProps={{
-                tickFormatter: formatMonthYear,
-              }}
-              yAxisProps={{
-                tickFormatter: formatYearFromTimestamp,
-                domain: [
-                  new Date("2020-01-02").getTime() / 1000,
-                  new Date("2130-01-02").getTime() / 1000,
-                ],
-              }}
-              tooltip={
-                <CustomTooltip
-                  formatter={(value) => [
-                    formatFullDateFromTimestamp(value),
-                    "",
-                  ]}
-                  labelFormatter={formatMonthDayYear}
-                />
-              }
-              lineProps={{
-                min: 2020,
-                max: 2130,
-              }}
-            />
-          </div>
-        </div>
-      )}
 
       <main className="mx-auto w-full max-w-6xl space-y-6">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
@@ -284,8 +231,9 @@ export default function Home() {
             </GraphTitle>
 
             <LineGraph
-              data={weakAgiData ? weakAgiData.data : []}
-              color="#10b981"
+              data={metWeaklyGeneralAI?.datapoints || []}
+              color="#00ff00"
+              key="different-data"
               label="Metaculus Prediction (Year)"
               xAxisProps={{
                 tickFormatter: formatMonthYear,
@@ -293,10 +241,10 @@ export default function Home() {
               yAxisProps={{
                 tickFormatter: formatYearFromTimestamp,
                 scale: "log",
-                domain: weakAgiData
+                domain: metWeaklyGeneralAI?.question
                   ? [
-                      weakAgiData.question.scaling.range_min,
-                      weakAgiData.question.scaling.range_max,
+                      metWeaklyGeneralAI.question.scaling.range_min,
+                      metWeaklyGeneralAI.question.scaling.range_max,
                     ]
                   : undefined,
               }}
@@ -360,7 +308,7 @@ export default function Home() {
               </p>
             </GraphTitle>
             <LineGraph
-              data={fullAgiData ? fullAgiData.data : []}
+              data={fullAgiData ? fullAgiData.datapoints : []}
               color="#06b6d4"
               label="Metaculus Prediction (Year)"
               xAxisProps={{

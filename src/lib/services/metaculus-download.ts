@@ -6,6 +6,9 @@ type YearForecast = { year: number; cdfValue: number; pdfValue: number };
 export async function downloadMetaculusData(questionId: number) {
   const response = await fetch(
     `/api/metaculus-download?questionId=${questionId}`,
+    {
+      cache: "force-cache",
+    },
   );
   const { question, forecast: forecastData } = (await response.json()) as {
     question: MetaculusResponse["question"];
@@ -17,7 +20,7 @@ export async function downloadMetaculusData(questionId: number) {
   const inverseTransform = getInverseTransform(question.scaling);
   const transform = getTransform(question.scaling);
 
-  const boundsResults: Omit<ChartDataPoint, "date">[] = [];
+  const boundsResults: (Omit<ChartDataPoint, "date"> | null)[] = [];
   const forecastResults: YearForecast[][] = [];
   for (let i = 0; i < forecastData.length; i++) {
     const forecast = forecastData[i];
@@ -54,26 +57,24 @@ export async function downloadMetaculusData(questionId: number) {
     for (let i = 0; i < cdfDataPoints.length; i++) {
       const value = cdfDataPoints[i];
       if (value > 0.1 && !lower) {
-        lower = new Date(
-          transform(getInterpolatedIndex(cdfDataPoints, i, 0.1) / 200) * 1000,
-        ).getTime();
+        lower = transform(getInterpolatedIndex(cdfDataPoints, i, 0.1) / 200);
       }
       if (value > 0.5 && !median) {
-        median = new Date(
-          transform(getInterpolatedIndex(cdfDataPoints, i, 0.5) / 200) * 1000,
-        ).getTime();
+        median = transform(getInterpolatedIndex(cdfDataPoints, i, 0.5) / 200);
       }
       if (value > 0.9 && !upper) {
-        upper = new Date(
-          transform(getInterpolatedIndex(cdfDataPoints, i, 0.9) / 200) * 1000,
-        ).getTime();
+        upper = transform(getInterpolatedIndex(cdfDataPoints, i, 0.9) / 200);
       }
     }
 
-    boundsResults.push({
-      value: median,
-      range: [lower, upper],
-    });
+    if (lower && median && upper) {
+      boundsResults.push({
+        value: median,
+        range: [lower, upper],
+      });
+    } else {
+      boundsResults.push(null);
+    }
   }
 
   // Read first forecast to get start date
@@ -121,7 +122,7 @@ export async function downloadMetaculusData(questionId: number) {
     }
   }
 
-  return { byYear, datapoints };
+  return { question, byYear, datapoints };
 }
 
 /**
