@@ -21,7 +21,6 @@ async function downloadMetaculusData() {
     });
 
     const url = `${METACULUS_API}/posts/${QUESTION_ID}/download-data/?${params}`;
-    console.log("Fetching from URL:", url);
 
     const response = await fetch(url, {
       headers: {

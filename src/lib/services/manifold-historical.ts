@@ -59,6 +59,7 @@ export async function getManifoldHistoricalData(slug: string) {
   );
 
   const data: ChartDataPoint[] = [];
+
   // Loop over dates which contain all years
   for (const date of dates.slice(firstDateWithAllYears)) {
     // Probabilities don't always sum to 1, because we're using
@@ -97,7 +98,7 @@ export async function getManifoldHistoricalData(slug: string) {
     });
   }
 
-  return data;
+  return { data, byYear: dates };
 }
 
 export const answerIdToYear = {

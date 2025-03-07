@@ -100,10 +100,14 @@ export async function downloadMetaculusData(questionId: number) {
     let nextIndex = forecastIndex + 1;
     while (
       forecastData?.[nextIndex] &&
-      new Date(forecastData[nextIndex]["End Time"]) < date
+      new Date(forecastData[nextIndex]["Start Time"]) <= date
     ) {
       forecastIndex = nextIndex;
       nextIndex = forecastIndex + 1;
+    }
+    if (forecastIndex === -1) {
+      console.error("Forecast index is -1");
+      throw new Error("Forecast index is -1");
     }
 
     const results = forecastResults[forecastIndex];

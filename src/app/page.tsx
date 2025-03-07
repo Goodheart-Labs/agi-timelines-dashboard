@@ -2,11 +2,6 @@
 
 import { fetchKalshiData } from "../lib/services/kalshi";
 import { fetchMetaculusData } from "../lib/services/metaculus";
-import {
-  getManifoldGroupedData,
-  ManifoldGroupedData,
-  transformManifoldDataForChart,
-} from "../lib/services/manifold-grouped";
 import { ChevronDownIcon, LinkIcon } from "lucide-react";
 import Image from "next/image";
 import * as Collapsible from "@radix-ui/react-collapsible";
@@ -15,11 +10,11 @@ import { MobileFriendlyTooltip } from "@/components/MobileFriendlyTooltip";
 import { useEffect, useState } from "react";
 import { ChartDataPoint } from "@/lib/types";
 import { LineGraph } from "@/components/LineGraph";
-import { BarGraph } from "@/components/BarGraph";
 import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { getManifoldHistoricalData } from "@/lib/services/manifold-historical";
 import { downloadMetaculusData } from "@/lib/services/metaculus-download";
+import { createIndex } from "@/lib/createIndex";
 
 const createSafeDateFormatter = (formatString: string) => (date: string) => {
   try {
@@ -102,8 +97,6 @@ export default function Home() {
   const [turingTestData, setTuringTestData] = useState<Awaited<
     ReturnType<typeof fetchMetaculusData>
   > | null>(null);
-  const [manifoldGroupedData, setManifoldGroupedData] =
-    useState<ManifoldGroupedData | null>(null);
   const [manifoldHistoricalData, setManifoldHistoricalData] = useState<Awaited<
     ReturnType<typeof getManifoldHistoricalData>
   > | null>(null);
@@ -111,6 +104,8 @@ export default function Home() {
   const [metWeaklyGeneralAI, setMetWeaklyGeneralAI] = useState<Awaited<
     ReturnType<typeof downloadMetaculusData>
   > | null>(null);
+
+  const [indexData, setIndexData] = useState<ChartDataPoint[]>([]);
 
   useEffect(() => {
     fetchKalshiData({
@@ -144,21 +139,20 @@ export default function Home() {
         // No error handling needed
       });
 
-    getManifoldGroupedData("agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708")
-      .then(setManifoldGroupedData)
-      .catch(() => {
-        // No error handling needed
-      });
-
     downloadMetaculusData(3479)
-      .then((data) => {
-        console.log(data);
-        setMetWeaklyGeneralAI(data);
-      })
+      .then(setMetWeaklyGeneralAI)
       .catch(() => {
         // No error handling needed
       });
   }, []);
+
+  useEffect(() => {
+    if (fullAgiData && metWeaklyGeneralAI && manifoldHistoricalData) {
+      setIndexData(
+        createIndex(metWeaklyGeneralAI, fullAgiData, manifoldHistoricalData),
+      );
+    }
+  }, [fullAgiData, metWeaklyGeneralAI, manifoldHistoricalData]);
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
@@ -176,7 +170,58 @@ export default function Home() {
             the FAQ for more.
           </MobileFriendlyTooltip>
         </h1>
+        <p className="mb-4 min-h-[108px] text-2xl text-gray-700 dark:text-gray-300">
+          {!indexData.length ? (
+            "Loading timeline assessment..."
+          ) : (
+            <>
+              <span className="mb-4 block text-4xl font-bold sm:text-6xl">
+                {indexData[indexData.length - 1].value}
+              </span>{" "}
+              Our AGI index predicts artificial general intelligence will arrive
+              in {indexData[indexData.length - 1].value} as of{" "}
+              <span className="inline-flex items-center">
+                {format(new Date(), "MMMM d, yyyy")}
+                <MobileFriendlyTooltip>
+                  The index is an average of predictions from Metaculus and
+                  Manifold Markets. Metaculus is a forecasting community with a
+                  strong track record, while Manifold Markets is a prediction
+                  market platform. The index combines multiple definitions of
+                  AGI to provide a more robust estimate.
+                </MobileFriendlyTooltip>
+              </span>
+            </>
+          )}
+        </p>
       </header>
+
+      {indexData && (
+        <div className="mx-auto mb-6 w-full max-w-6xl space-y-6">
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <LineGraph
+              data={indexData}
+              color="#4f46e5"
+              label="AGI Index"
+              xAxisProps={{
+                tickFormatter: formatMonthYear,
+              }}
+              yAxisProps={{
+                domain: [2024, 2199],
+              }}
+              tooltip={
+                <CustomTooltip
+                  formatter={(value) => [value.toString(), ""]}
+                  labelFormatter={formatMonthDayYear}
+                />
+              }
+              lineProps={{
+                min: 2020,
+                max: 2130,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto w-full max-w-6xl space-y-6">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
@@ -338,6 +383,37 @@ export default function Home() {
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
+              title="When will AGI arrive? (Manifold Markets Distribution)"
+              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
+              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
+            />
+            {manifoldHistoricalData && (
+              <LineGraph
+                data={manifoldHistoricalData.data}
+                color="#4f46e5"
+                label="Manifold Prediction (Year)"
+                xAxisProps={{
+                  tickFormatter: formatMonthYear,
+                }}
+                yAxisProps={{
+                  domain: [2020, 2055],
+                }}
+                tooltip={
+                  <CustomTooltip
+                    formatter={(value) => [value.toString(), ""]}
+                    labelFormatter={formatMonthDayYear}
+                  />
+                }
+              />
+            )}
+          </div>
+
+          <h3 className="col-span-2 mt-6 text-xl font-semibold text-gray-700 dark:text-gray-300">
+            Not included in index:
+          </h3>
+
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
               title='Date of AI passing "difficult Turing Test" - Metaculus'
               sourceUrl="https://www.metaculus.com/questions/11861/when-will-ai-pass-a-difficult-turing-test/"
               tooltipContent={
@@ -411,55 +487,6 @@ export default function Home() {
               }
             />
           </div>
-
-          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <GraphTitle
-              title="When will AGI arrive? (Manifold Markets Distribution)"
-              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
-              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
-            />
-            {manifoldHistoricalData && (
-              <LineGraph
-                data={manifoldHistoricalData}
-                color="#4f46e5"
-                label="Manifold Prediction (Year)"
-                xAxisProps={{
-                  tickFormatter: formatMonthYear,
-                }}
-                yAxisProps={{
-                  domain: [2020, 2055],
-                }}
-                tooltip={
-                  <CustomTooltip
-                    formatter={(value) => [value.toString(), ""]}
-                    labelFormatter={formatMonthDayYear}
-                  />
-                }
-              />
-            )}
-          </div>
-
-          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <GraphTitle
-              title="When will AGI arrive? (Manifold Markets Distribution)"
-              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
-              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
-            />
-            {manifoldGroupedData && (
-              <BarGraph
-                data={transformManifoldDataForChart(manifoldGroupedData)}
-                color="#4f46e5"
-                label="Probability (%)"
-                formatValue={(v) => `${v.toFixed(1)}%`}
-                tickFormatter={(text) => text}
-                tooltipLabelFormatter={(text) => text}
-              />
-            )}
-          </div>
-
-          <h3 className="col-span-2 mt-6 text-xl font-semibold text-gray-700 dark:text-gray-300">
-            Not included in index:
-          </h3>
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
