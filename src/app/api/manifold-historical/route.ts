@@ -35,10 +35,12 @@ export async function GET(request: Request) {
     }
   }
 
-  // Cache for 1 hour
-  const cache = new Response(JSON.stringify({ bets }), {
-    headers: { "Cache-Control": "public, max-age=3600" },
-  });
-
-  return cache;
+  return NextResponse.json(
+    { bets },
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=86400",
+      },
+    },
+  );
 }
