@@ -7,7 +7,9 @@ export async function downloadMetaculusData(questionId: number) {
   const response = await fetch(
     `/api/metaculus-download?questionId=${questionId}`,
     {
-      cache: "force-cache",
+      next: {
+        revalidate: 60 * 60 * 24, // 24 hours
+      },
     },
   );
   const { question, forecast: forecastData } = (await response.json()) as {
