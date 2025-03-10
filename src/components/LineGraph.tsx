@@ -101,6 +101,7 @@ export function LineGraph({
               fill={color}
               fillOpacity={0.2}
               stroke="none"
+              isAnimationActive={false}
             />
           )}
           <Line

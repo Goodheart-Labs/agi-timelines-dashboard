@@ -48,6 +48,10 @@ export const msFormatters: Record<
 export type AnyFormatter = Formatter | MsFormatter;
 
 export function getFormatter(formatter: AnyFormatter) {
+  if (!(formatter in formatters) && !(formatter in msFormatters)) {
+    return (x: string) => x;
+  }
+
   if (formatter.startsWith("ms:")) {
     return msFormatters[formatter as MsFormatter];
   }

@@ -12,8 +12,6 @@ import { CustomTooltip } from "@/components/CustomTooltip";
 import { GraphTitle } from "@/components/GraphTitle";
 import Image from "next/image";
 
-import { formatMonthDayYear } from "@/lib/dates";
-
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-static";
@@ -102,12 +100,12 @@ export default async function ServerRenderedPage() {
               label="AGI Index"
               xAxisFormatter="MMM yyyy"
               yAxisProps={{
-                domain: [2024, 2199],
+                domain: [2024, 2100],
               }}
               tooltip={
                 <CustomTooltip
-                  formatter="MMM d, yyyy"
-                  labelFormatter={formatMonthDayYear}
+                  // formatter="MMM d, yyyy"
+                  labelFormatter="MMM d, yyyy"
                 />
               }
               lineProps={{
@@ -173,7 +171,7 @@ export default async function ServerRenderedPage() {
 
             <LineGraph
               data={metWeaklyGeneralAI?.datapoints || []}
-              color="#00ff00"
+              color="#22c55e"
               key="different-data"
               label="Metaculus Prediction (Year)"
               xAxisFormatter="MMM yyyy"
@@ -190,7 +188,7 @@ export default async function ServerRenderedPage() {
               tooltip={
                 <CustomTooltip
                   formatter="ms:yyyy-MM-dd"
-                  labelFormatter={formatMonthDayYear}
+                  labelFormatter="MMM d, yyyy"
                 />
               }
             />
@@ -261,7 +259,7 @@ export default async function ServerRenderedPage() {
               tooltip={
                 <CustomTooltip
                   formatter="ms:yyyy-MM-dd"
-                  labelFormatter={formatMonthDayYear}
+                  labelFormatter="MMM d, yyyy"
                 />
               }
             />
@@ -282,7 +280,7 @@ export default async function ServerRenderedPage() {
                 yAxisProps={{
                   domain: [2020, 2055],
                 }}
-                tooltip={<CustomTooltip labelFormatter={formatMonthDayYear} />}
+                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
               />
             )}
           </div>
@@ -356,7 +354,7 @@ export default async function ServerRenderedPage() {
               tooltip={
                 <CustomTooltip
                   formatter="ms:yyyy-MM-dd"
-                  labelFormatter={formatMonthDayYear}
+                  labelFormatter="MMM d, yyyy"
                 />
               }
             />

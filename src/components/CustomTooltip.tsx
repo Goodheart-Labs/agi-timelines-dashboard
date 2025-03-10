@@ -1,3 +1,5 @@
+"use client";
+
 import { AnyFormatter, getFormatter } from "@/lib/dates";
 import { useMemo } from "react";
 
@@ -9,7 +11,7 @@ export function CustomTooltip({
   payload,
   label,
   formatter,
-  labelFormatter,
+  labelFormatter: labelFormatterProp,
 }: {
   /**
    * Whether the tooltip is currently being displayed
@@ -31,11 +33,17 @@ export function CustomTooltip({
   /**
    * Function to format the x-axis label (e.g. format dates)
    */
-  labelFormatter: (date: string) => string;
+  labelFormatter?: AnyFormatter;
 }) {
-  const f = useMemo(
+  const valueFormatter = useMemo(
     () => (formatter ? getFormatter(formatter) : (x: number) => x.toString()),
     [formatter],
+  );
+
+  const labelFormatter = useMemo(
+    () =>
+      labelFormatterProp ? getFormatter(labelFormatterProp) : (x: string) => x,
+    [labelFormatterProp],
   );
 
   if (!active || !payload || !payload[0]) return null;
@@ -47,13 +55,13 @@ export function CustomTooltip({
     number,
   ];
 
-  const content = f(mainValue as never);
+  const content = valueFormatter(mainValue as never);
   const lines = content.split("<br />");
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800">
       <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
-        {labelFormatter(label || "")}
+        {labelFormatter((label as never) || "")}
       </p>
       {lines.map((line, i) => {
         // Extract the number between <b> tags if it exists
@@ -83,7 +91,8 @@ export function CustomTooltip({
       })}
       {range && (
         <p className="mt-1 text-sm text-gray-500">
-          Range: {f(range[0] as never)} - {f(range[1] as never)}
+          Range: {valueFormatter(range[0] as never)} -{" "}
+          {valueFormatter(range[1] as never)}
         </p>
       )}
     </div>

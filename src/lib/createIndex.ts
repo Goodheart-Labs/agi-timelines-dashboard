@@ -163,7 +163,15 @@ export function createIndex(
     });
   }
 
-  return data;
+  // Slice the data to only begin after February 2nd, 2020
+  const errorDate = new Date("2020-02-02");
+  const startIndex = data.findIndex((x) => new Date(x.date) >= errorDate);
+
+  if (startIndex === -1) {
+    return data;
+  }
+
+  return data.slice(startIndex);
 }
 
 /**
