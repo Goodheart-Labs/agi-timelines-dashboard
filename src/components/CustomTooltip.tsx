@@ -1,3 +1,6 @@
+import { AnyFormatter, getFormatter } from "@/lib/dates";
+import { useMemo } from "react";
+
 /**
  * A custom tooltip component for charts
  */
@@ -23,12 +26,18 @@ export function CustomTooltip({
   /**
    * Function to format numeric values into [formattedValue, unit] tuples
    */
-  formatter: (value: number) => [string, string];
+  formatter?: AnyFormatter;
+
   /**
    * Function to format the x-axis label (e.g. format dates)
    */
   labelFormatter: (date: string) => string;
 }) {
+  const f = useMemo(
+    () => (formatter ? getFormatter(formatter) : (x: number) => x.toString()),
+    [formatter],
+  );
+
   if (!active || !payload || !payload[0]) return null;
 
   // Handle both single values and ranges
@@ -38,7 +47,7 @@ export function CustomTooltip({
     number,
   ];
 
-  const [content] = formatter(mainValue);
+  const content = f(mainValue as never);
   const lines = content.split("<br />");
 
   return (
@@ -74,7 +83,7 @@ export function CustomTooltip({
       })}
       {range && (
         <p className="mt-1 text-sm text-gray-500">
-          Range: {formatter(range[0])[0]} - {formatter(range[1])[0]}
+          Range: {f(range[0] as never)} - {f(range[1] as never)}
         </p>
       )}
     </div>
