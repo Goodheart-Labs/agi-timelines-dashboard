@@ -1,158 +1,54 @@
-"use client";
-
-import { fetchKalshiData } from "../lib/services/kalshi";
-import { fetchMetaculusData } from "../lib/services/metaculus";
-import { ChevronDownIcon, LinkIcon } from "lucide-react";
-import Image from "next/image";
+import { createIndex } from "@/lib/createIndex";
+import { fetchKalshiData } from "@/lib/services/kalshi.server";
+import { getManifoldHistoricalData } from "@/lib/services/manifold-historical.server";
+import { fetchMetaculusData } from "@/lib/services/metaculus.server";
+import { downloadMetaculusData } from "@/lib/services/metaculus-download.server";
 import * as Collapsible from "@radix-ui/react-collapsible";
-import { cn } from "@/lib/utils";
+import { ChevronDownIcon } from "lucide-react";
 import { MobileFriendlyTooltip } from "@/components/MobileFriendlyTooltip";
-import { useEffect, useState } from "react";
-import { ChartDataPoint } from "@/lib/types";
 import { LineGraph } from "@/components/LineGraph";
 import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
-import { getManifoldHistoricalData } from "@/lib/services/manifold-historical";
-import { downloadMetaculusData } from "@/lib/services/metaculus-download";
-import { createIndex } from "@/lib/createIndex";
+import { GraphTitle } from "@/components/GraphTitle";
+import Image from "next/image";
 
-const createSafeDateFormatter = (formatString: string) => (date: string) => {
-  try {
-    return format(new Date(date), formatString);
-  } catch {
-    return date;
+export const runtime = "nodejs";
+export const maxDuration = 300;
+export const dynamic = "force-static";
+
+export default async function ServerRenderedPage() {
+  const [index, kalshiDataPromise, turingTestDataPromise] =
+    await Promise.allSettled([
+      getIndexData(),
+      fetchKalshiData({
+        seriesTicker: "KXAITURING",
+        marketTicker: "AITURING",
+        marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
+        period_interval: 24 * 60,
+      }),
+      fetchMetaculusData(11861),
+    ]);
+
+  if (index.status === "rejected") {
+    throw new Error(`Failed to fetch index data: ${index.reason}`);
   }
-};
 
-const createSafeMillisecondDateFormatter =
-  (formatString: string) => (milliseconds: number) => {
-    try {
-      return format(new Date(milliseconds * 1000), formatString);
-    } catch {
-      return milliseconds.toString();
-    }
-  };
+  const { indexData, manifoldHistoricalData, metWeaklyGeneralAI, fullAgiData } =
+    index.value;
 
-const formatYearFromTimestamp = createSafeMillisecondDateFormatter("yyyy");
-const formatFullDateFromTimestamp =
-  createSafeMillisecondDateFormatter("yyyy-MM-dd");
-const formatMonthYear = createSafeDateFormatter("MMM yyyy");
-const formatMonthDayYear = createSafeDateFormatter("MMM d, yyyy");
-const formatMonthDay = createSafeDateFormatter("MMM d");
+  if (kalshiDataPromise.status === "rejected") {
+    throw new Error(`Failed to fetch kalshi data: ${kalshiDataPromise.reason}`);
+  }
 
-function GraphTitle({
-  title,
-  sourceUrl,
-  tooltipContent,
-  children,
-}: {
-  title: string;
-  sourceUrl?: string;
-  tooltipContent?: React.ReactNode;
-  children?: React.ReactNode;
-}) {
-  const sharedClasses =
-    "text-pretty text-xl font-semibold leading-tight tracking-tight text-gray-900 dark:text-gray-100";
-  const TitleComponent = sourceUrl ? (
-    <a
-      href={sourceUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group"
-    >
-      <h2
-        className={cn(
-          sharedClasses,
-          "group-hover:text-blue-600 dark:group-hover:text-blue-400",
-        )}
-      >
-        {title}
-        <LinkIcon className="ml-1 inline-block h-3 w-3 opacity-50 group-hover:opacity-60" />
-      </h2>
-    </a>
-  ) : (
-    <h2 className={sharedClasses}>{title}</h2>
-  );
+  const kalshiData = kalshiDataPromise.value;
 
-  return (
-    <div className="mb-4 grid gap-1">
-      <div className="inline-flex items-center justify-between gap-1">
-        <div className="flex w-full items-center justify-start gap-2">
-          {TitleComponent}
-        </div>
-        {tooltipContent && (
-          <MobileFriendlyTooltip>{tooltipContent}</MobileFriendlyTooltip>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-}
+  if (turingTestDataPromise.status === "rejected") {
+    throw new Error(
+      `Failed to fetch turing test data: ${turingTestDataPromise.reason}`,
+    );
+  }
 
-export default function Home() {
-  const [kalshiData, setKalshiData] = useState<ChartDataPoint[]>([]);
-  const [fullAgiData, setFullAgiData] = useState<Awaited<
-    ReturnType<typeof downloadMetaculusData>
-  > | null>(null);
-  const [turingTestData, setTuringTestData] = useState<Awaited<
-    ReturnType<typeof fetchMetaculusData>
-  > | null>(null);
-  const [manifoldHistoricalData, setManifoldHistoricalData] = useState<Awaited<
-    ReturnType<typeof getManifoldHistoricalData>
-  > | null>(null);
-
-  const [metWeaklyGeneralAI, setMetWeaklyGeneralAI] = useState<Awaited<
-    ReturnType<typeof downloadMetaculusData>
-  > | null>(null);
-
-  const [indexData, setIndexData] = useState<ChartDataPoint[]>([]);
-
-  useEffect(() => {
-    fetchKalshiData({
-      seriesTicker: "KXAITURING",
-      marketTicker: "AITURING",
-      marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
-      period_interval: 24 * 60,
-    })
-      .then(setKalshiData)
-      .catch(() => {
-        // No error handling needed
-      });
-
-    downloadMetaculusData(5121)
-      .then(setFullAgiData)
-      .catch(() => {
-        // No error handling needed
-      });
-
-    fetchMetaculusData(11861)
-      .then(setTuringTestData)
-      .catch(() => {
-        // No error handling needed
-      });
-
-    getManifoldHistoricalData(
-      "agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708",
-    )
-      .then(setManifoldHistoricalData)
-      .catch(() => {
-        // No error handling needed
-      });
-
-    downloadMetaculusData(3479)
-      .then(setMetWeaklyGeneralAI)
-      .catch(() => {
-        // No error handling needed
-      });
-  }, []);
-
-  useEffect(() => {
-    if (fullAgiData && metWeaklyGeneralAI && manifoldHistoricalData) {
-      setIndexData(
-        createIndex(metWeaklyGeneralAI, fullAgiData, manifoldHistoricalData),
-      );
-    }
-  }, [fullAgiData, metWeaklyGeneralAI, manifoldHistoricalData]);
+  const turingTestData = turingTestDataPromise.value;
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
@@ -202,16 +98,14 @@ export default function Home() {
               data={indexData}
               color="#4f46e5"
               label="AGI Index"
-              xAxisProps={{
-                tickFormatter: formatMonthYear,
-              }}
+              xAxisFormatter="MMM yyyy"
               yAxisProps={{
-                domain: [2024, 2199],
+                domain: [2024, 2100],
               }}
               tooltip={
                 <CustomTooltip
-                  formatter={(value) => [value.toString(), ""]}
-                  labelFormatter={formatMonthDayYear}
+                  // formatter="MMM d, yyyy"
+                  labelFormatter="MMM d, yyyy"
                 />
               }
               lineProps={{
@@ -277,14 +171,11 @@ export default function Home() {
 
             <LineGraph
               data={metWeaklyGeneralAI?.datapoints || []}
-              color="#00ff00"
+              color="#22c55e"
               key="different-data"
               label="Metaculus Prediction (Year)"
-              xAxisProps={{
-                tickFormatter: formatMonthYear,
-              }}
+              xAxisFormatter="MMM yyyy"
               yAxisProps={{
-                tickFormatter: formatYearFromTimestamp,
                 scale: "log",
                 domain: metWeaklyGeneralAI?.question
                   ? [
@@ -293,13 +184,11 @@ export default function Home() {
                     ]
                   : undefined,
               }}
+              yAxisFormatter="ms:yyyy"
               tooltip={
                 <CustomTooltip
-                  formatter={(value) => [
-                    formatFullDateFromTimestamp(value),
-                    "",
-                  ]}
-                  labelFormatter={formatMonthDayYear}
+                  formatter="ms:yyyy-MM-dd"
+                  labelFormatter="MMM d, yyyy"
                 />
               }
             />
@@ -356,11 +245,8 @@ export default function Home() {
               data={fullAgiData ? fullAgiData.datapoints : []}
               color="#06b6d4"
               label="Metaculus Prediction (Year)"
-              xAxisProps={{
-                tickFormatter: formatMonthYear,
-              }}
+              xAxisFormatter="MMM yyyy"
               yAxisProps={{
-                tickFormatter: formatYearFromTimestamp,
                 scale: "linear",
                 domain: fullAgiData
                   ? [
@@ -369,13 +255,11 @@ export default function Home() {
                     ]
                   : undefined,
               }}
+              yAxisFormatter="ms:yyyy"
               tooltip={
                 <CustomTooltip
-                  formatter={(value) => [
-                    formatFullDateFromTimestamp(value),
-                    "",
-                  ]}
-                  labelFormatter={formatMonthDayYear}
+                  formatter="ms:yyyy-MM-dd"
+                  labelFormatter="MMM d, yyyy"
                 />
               }
             />
@@ -392,18 +276,11 @@ export default function Home() {
                 data={manifoldHistoricalData.data}
                 color="#4f46e5"
                 label="Manifold Prediction (Year)"
-                xAxisProps={{
-                  tickFormatter: formatMonthYear,
-                }}
+                xAxisFormatter="MMM yyyy"
                 yAxisProps={{
                   domain: [2020, 2055],
                 }}
-                tooltip={
-                  <CustomTooltip
-                    formatter={(value) => [value.toString(), ""]}
-                    labelFormatter={formatMonthDayYear}
-                  />
-                }
+                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
               />
             )}
           </div>
@@ -463,11 +340,8 @@ export default function Home() {
               data={turingTestData ? turingTestData.data : []}
               color="#0ea5e9"
               label="Metaculus Prediction (Year)"
-              xAxisProps={{
-                tickFormatter: formatMonthYear,
-              }}
+              xAxisFormatter="MMM yyyy"
               yAxisProps={{
-                tickFormatter: formatYearFromTimestamp,
                 scale: "linear",
                 domain: turingTestData
                   ? [
@@ -476,13 +350,11 @@ export default function Home() {
                     ]
                   : undefined,
               }}
+              yAxisFormatter="ms:yyyy"
               tooltip={
                 <CustomTooltip
-                  formatter={(value) => [
-                    formatFullDateFromTimestamp(value),
-                    "",
-                  ]}
-                  labelFormatter={formatMonthDayYear}
+                  formatter="ms:yyyy-MM-dd"
+                  labelFormatter="MMM d, yyyy"
                 />
               }
             />
@@ -498,9 +370,7 @@ export default function Home() {
               data={kalshiData}
               color="#8b5cf6"
               label="Kalshi Prediction (%)"
-              xAxisProps={{
-                tickFormatter: formatMonthDay,
-              }}
+              xAxisFormatter="MMM d"
               yAxisProps={{
                 domain: [60, 80],
               }}
@@ -684,4 +554,53 @@ export default function Home() {
       </footer>
     </div>
   );
+}
+
+async function getIndexData() {
+  const [fullAgiData, metWeaklyGeneralAI, manifoldHistoricalData] =
+    await Promise.allSettled([
+      downloadMetaculusData(5121),
+      downloadMetaculusData(3479),
+      getManifoldHistoricalData(
+        "agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708",
+      ),
+    ]);
+
+  let indexData: null | Awaited<ReturnType<typeof createIndex>> = null;
+
+  if (
+    metWeaklyGeneralAI.status === "fulfilled" &&
+    fullAgiData.status === "fulfilled" &&
+    manifoldHistoricalData.status === "fulfilled"
+  ) {
+    indexData = createIndex(
+      metWeaklyGeneralAI.value,
+      fullAgiData.value,
+      manifoldHistoricalData.value,
+    );
+
+    return {
+      indexData,
+      metWeaklyGeneralAI: metWeaklyGeneralAI.value,
+      fullAgiData: fullAgiData.value,
+      manifoldHistoricalData: manifoldHistoricalData.value,
+    };
+  }
+
+  // Show which ones failed
+  const failures = {
+    metWeaklyGeneralAI:
+      metWeaklyGeneralAI.status === "rejected"
+        ? metWeaklyGeneralAI.reason
+        : null,
+    fullAgiData: fullAgiData.status === "rejected" ? fullAgiData.reason : null,
+    manifoldHistoricalData:
+      manifoldHistoricalData.status === "rejected"
+        ? manifoldHistoricalData.reason
+        : null,
+  };
+
+  console.error(`Error fetching data: ${JSON.stringify(failures)}`);
+
+  throw new Error(`Error fetching data: ${JSON.stringify(failures)}`);
 }

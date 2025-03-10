@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Area,
   CartesianGrid,
@@ -13,13 +15,16 @@ import {
   YAxisProps,
 } from "recharts";
 import { ChartDataPoint } from "../lib/types";
+import { AnyFormatter, getFormatter } from "@/lib/dates";
 
 export function LineGraph({
   data,
   color,
   label,
   xAxisProps = {},
+  xAxisFormatter,
   yAxisProps = {},
+  yAxisFormatter,
   tooltip,
   lineProps = {},
 }: {
@@ -27,7 +32,9 @@ export function LineGraph({
   color: string;
   label: string;
   xAxisProps?: Partial<XAxisProps>;
+  xAxisFormatter?: AnyFormatter;
   yAxisProps?: Partial<YAxisProps>;
+  yAxisFormatter?: AnyFormatter;
   tooltip?: TooltipProps<number, string>["content"];
   lineProps?: Omit<LineProps, "ref">;
 }) {
@@ -68,6 +75,9 @@ export function LineGraph({
             stroke="currentColor"
             opacity={0.2}
             {...xAxisProps}
+            {...(xAxisFormatter
+              ? { tickFormatter: getFormatter(xAxisFormatter) }
+              : {})}
           />
           <YAxis
             width={45}
@@ -79,6 +89,9 @@ export function LineGraph({
             stroke="currentColor"
             opacity={0.2}
             {...yAxisProps}
+            {...(yAxisFormatter
+              ? { tickFormatter: getFormatter(yAxisFormatter) }
+              : {})}
           />
           {tooltip ? <Tooltip content={tooltip} /> : null}
           {hasDistribution && (
@@ -88,6 +101,7 @@ export function LineGraph({
               fill={color}
               fillOpacity={0.2}
               stroke="none"
+              isAnimationActive={false}
             />
           )}
           <Line
