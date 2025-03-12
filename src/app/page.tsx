@@ -16,33 +16,14 @@ export const maxDuration = 300;
 export const dynamic = "force-static";
 
 export default async function ServerRenderedPage() {
-  const [index, kalshiDataPromise] = await Promise.allSettled([
-    getIndexData(),
-    fetchKalshiData({
-      seriesTicker: "KXAITURING",
-      marketTicker: "AITURING",
-      marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
-      period_interval: 24 * 60,
-    }),
-  ]);
-
-  if (index.status === "rejected") {
-    throw new Error(`Failed to fetch index data: ${index.reason}`);
-  }
-
   const {
     indexData,
     manifoldHistoricalData,
     metWeaklyGeneralAI,
     turingTestData,
     fullAgiData,
-  } = index.value;
-
-  if (kalshiDataPromise.status === "rejected") {
-    throw new Error(`Failed to fetch kalshi data: ${kalshiDataPromise.reason}`);
-  }
-
-  const kalshiData = kalshiDataPromise.value;
+    kalshiData,
+  } = await getIndexData();
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
@@ -349,10 +330,6 @@ export default async function ServerRenderedPage() {
             />
           </div>
 
-          <h3 className="col-span-2 mt-6 text-xl font-semibold text-gray-700 dark:text-gray-300">
-            Not included in index:
-          </h3>
-
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
               title="AI passes Turing test before 2030?"
@@ -367,6 +344,7 @@ export default async function ServerRenderedPage() {
               yAxisProps={{
                 domain: [60, 80],
               }}
+              tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
             />
           </div>
         </div>
@@ -555,6 +533,7 @@ async function getIndexData() {
     metWeaklyGeneralAI,
     turingTestData,
     manifoldHistoricalData,
+    kalshiData,
   ] = await Promise.allSettled([
     downloadMetaculusData(5121),
     downloadMetaculusData(3479),
@@ -562,6 +541,12 @@ async function getIndexData() {
     getManifoldHistoricalData(
       "agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708",
     ),
+    fetchKalshiData({
+      seriesTicker: "KXAITURING",
+      marketTicker: "AITURING",
+      marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
+      period_interval: 24 * 60,
+    }),
   ]);
 
   let indexData: null | Awaited<ReturnType<typeof createIndex>> = null;
@@ -570,13 +555,15 @@ async function getIndexData() {
     metWeaklyGeneralAI.status === "fulfilled" &&
     fullAgiData.status === "fulfilled" &&
     turingTestData.status === "fulfilled" &&
-    manifoldHistoricalData.status === "fulfilled"
+    manifoldHistoricalData.status === "fulfilled" &&
+    kalshiData.status === "fulfilled"
   ) {
     indexData = createIndex(
       metWeaklyGeneralAI.value,
       fullAgiData.value,
       turingTestData.value,
       manifoldHistoricalData.value,
+      kalshiData.value,
     );
 
     return {
@@ -585,6 +572,7 @@ async function getIndexData() {
       fullAgiData: fullAgiData.value,
       turingTestData: turingTestData.value,
       manifoldHistoricalData: manifoldHistoricalData.value,
+      kalshiData: kalshiData.value,
     };
   }
 

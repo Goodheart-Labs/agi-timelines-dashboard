@@ -20,6 +20,8 @@
 import { downloadMetaculusData } from "./services/metaculus-download";
 import { getManifoldHistoricalData } from "./services/manifold-historical";
 import { ChartDataPoint } from "./types";
+import { fetchKalshiData } from "./services/kalshi";
+import { getNearestKalshiIndex } from "./kalshi/index-helpers";
 
 interface HasDate {
   date: number;
@@ -37,6 +39,7 @@ export function createIndex(
   fullAgiData: Awaited<ReturnType<typeof downloadMetaculusData>>,
   turingTestData: Awaited<ReturnType<typeof downloadMetaculusData>>,
   manifoldData: Awaited<ReturnType<typeof getManifoldHistoricalData>>,
+  kalshiData: Awaited<ReturnType<typeof fetchKalshiData>>,
 ) {
   const fullAgiPre = fullAgiData.byYear;
   const weakAgiPre = weakAgiData.byYear;
@@ -159,10 +162,39 @@ export function createIndex(
     ].filter((x) => x !== null);
 
     // For the samples that exist, find the average for each year
-    const averages = Array.from({ length: 176 }, (_, i) => {
+    let averages = Array.from({ length: 176 }, (_, i) => {
       const sum = samples.reduce((acc, curr) => acc + curr.years[i], 0);
       return sum / samples.length;
     });
+
+    // Manipulate averages using kalshi data here:
+    // ...
+
+    // Check for kalshi data for this date
+    const kalshiIndex = getNearestKalshiIndex(date, kalshiData);
+    if (kalshiIndex) {
+      const kalshiValue = kalshiData[kalshiIndex];
+      const probabilityBefore2030 = averages
+        .slice(0, 6)
+        .reduce((acc, curr) => acc + curr, 0);
+      const probabilityAfter2030 = averages
+        .slice(6)
+        .reduce((acc, curr) => acc + curr, 0);
+
+      const kalshiProbability = kalshiValue.value / 100;
+      const scalingFactorBefore = kalshiProbability / probabilityBefore2030;
+      const scalingFactorAfter = (1 - kalshiProbability) / probabilityAfter2030;
+
+      const kalshiAverages = averages.map((prob, i) => {
+        const scalar = i < 6 ? scalingFactorBefore : scalingFactorAfter;
+        return prob * scalar;
+      });
+
+      // Factor in kalshi averages as 1/5 of the total
+      averages = averages.map((prob, i) => {
+        return prob * 0.8 + kalshiAverages[i] * 0.2;
+      });
+    }
 
     // We're going to track lower, median, and upper bounds
     // at 10%, 50%, and 90%
