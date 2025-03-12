@@ -35,10 +35,12 @@ interface ProcessedData extends HasDate {
 export function createIndex(
   weakAgiData: Awaited<ReturnType<typeof downloadMetaculusData>>,
   fullAgiData: Awaited<ReturnType<typeof downloadMetaculusData>>,
+  turingTestData: Awaited<ReturnType<typeof downloadMetaculusData>>,
   manifoldData: Awaited<ReturnType<typeof getManifoldHistoricalData>>,
 ) {
   const fullAgiPre = fullAgiData.byYear;
   const weakAgiPre = weakAgiData.byYear;
+  const turingTestPre = turingTestData.byYear;
   const manifoldPre = manifoldData.byYear;
 
   const fullAgi: ProcessedData[] = fullAgiData.byYear.map((item) => {
@@ -60,6 +62,24 @@ export function createIndex(
   });
 
   const weakAgi: ProcessedData[] = weakAgiData.byYear.map((item) => {
+    const years = Array.from({ length: 176 }, (_, i) => {
+      const year = 2024 + i;
+      const found = item.years.find((x) => x.year === year);
+      if (!found) return 0;
+      return found.pdfValue;
+    });
+
+    // Normalize the years so that they sum to 1
+    const sum = years.reduce((acc, curr) => acc + curr, 0);
+    const normalized = years.map((x) => x / sum);
+
+    return {
+      date: item.date,
+      years: normalized,
+    };
+  });
+
+  const turingTest: ProcessedData[] = turingTestData.byYear.map((item) => {
     const years = Array.from({ length: 176 }, (_, i) => {
       const year = 2024 + i;
       const found = item.years.find((x) => x.year === year);
@@ -113,6 +133,7 @@ export function createIndex(
   const startDate = Math.min(
     fullAgiPre[0].date,
     weakAgiPre[0].date,
+    turingTestPre[0].date,
     manifoldPre[0].date,
   );
 
@@ -120,6 +141,7 @@ export function createIndex(
   const endDate = Math.max(
     fullAgiPre[fullAgiPre.length - 1].date,
     weakAgiPre[weakAgiPre.length - 1].date,
+    turingTestPre[turingTestPre.length - 1].date,
     manifoldPre[manifoldPre.length - 1].date,
   );
 
@@ -132,6 +154,7 @@ export function createIndex(
     const samples = [
       getNearest(fullAgi, date),
       getNearest(weakAgi, date),
+      getNearest(turingTest, date),
       getNearest(manifold, date),
     ].filter((x) => x !== null);
 
