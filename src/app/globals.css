@@ -56,3 +56,16 @@
 body {
   @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
 }
+.index-bar::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 1px;
+  height: 500px;
+  border-left: 1px dashed var(--color);
+}
+
+.index-bar-container {
+  clip-path: inset(0 0 -250px 0);
+}

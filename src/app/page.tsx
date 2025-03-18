@@ -10,10 +10,13 @@ import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { GraphTitle } from "@/components/GraphTitle";
 import Image from "next/image";
+import { CSSProperties } from "react";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-static";
+
+const HEIGHT = 17;
 
 export default async function ServerRenderedPage() {
   const {
@@ -42,15 +45,15 @@ export default async function ServerRenderedPage() {
           </MobileFriendlyTooltip>
         </h1>
         <p className="mb-4 min-h-[108px] text-2xl text-gray-700 dark:text-gray-300">
-          {!indexData.length ? (
+          {!indexData.data.length ? (
             "Loading timeline assessment..."
           ) : (
             <>
               <span className="mb-4 block text-4xl font-bold sm:text-6xl">
-                {indexData[indexData.length - 1].value}
+                {indexData.data[indexData.data.length - 1].value}
               </span>{" "}
               Our AGI index predicts artificial general intelligence will arrive
-              in {indexData[indexData.length - 1].value} as of{" "}
+              in {indexData.data[indexData.data.length - 1].value} as of{" "}
               <span className="inline-flex items-center">
                 {format(new Date(), "MMMM d, yyyy")}
                 <MobileFriendlyTooltip>
@@ -69,25 +72,90 @@ export default async function ServerRenderedPage() {
       {indexData && (
         <div className="mx-auto mb-6 w-full max-w-6xl space-y-6">
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <LineGraph
-              data={indexData}
-              color="#4f46e5"
-              label="AGI Index"
-              xAxisFormatter="MMM yyyy"
-              yAxisProps={{
-                domain: [2024, 2100],
-              }}
-              tooltip={
-                <CustomTooltip
-                  // formatter="MMM d, yyyy"
-                  labelFormatter="MMM d, yyyy"
-                />
-              }
-              lineProps={{
-                min: 2020,
-                max: 2130,
-              }}
-            />
+            <div className="relative overflow-hidden">
+              <div
+                className="index-bar-container relative"
+                style={{
+                  height: 5 * HEIGHT,
+                  marginLeft: 60,
+                  marginRight: 16,
+                }}
+              >
+                {[
+                  {
+                    name: "Metaculus (Weak AGI)",
+                    startDate: indexData.startDates.weakAgi,
+                    color: "#dc2626",
+                  },
+                  {
+                    name: "Metaculus (Full AGI)",
+                    startDate: indexData.startDates.fullAgi,
+                    color: "#2563eb",
+                  },
+                  {
+                    name: "Metaculus (Turing)",
+                    startDate: indexData.startDates.turingTest,
+                    color: "#16a34a",
+                  },
+                  {
+                    name: "Manifold",
+                    startDate: indexData.startDates.manifold,
+                    color: "#9333ea",
+                  },
+                  {
+                    name: "Kalshi",
+                    startDate: indexData.startDates.kalshi,
+                    color: "#ea580c",
+                  },
+                ]
+                  .sort((a, b) => a.startDate - b.startDate)
+                  .map((source, index) => {
+                    const startDate = new Date(source.startDate);
+                    const endDate = new Date();
+                    const totalRange =
+                      endDate.getTime() - new Date("2020-02-02").getTime();
+                    const startOffset =
+                      ((startDate.getTime() -
+                        new Date("2020-02-02").getTime()) /
+                        totalRange) *
+                      100;
+
+                    return (
+                      <div
+                        key={source.name}
+                        className="index-bar absolute flex h-[17px] items-center pl-2"
+                        style={
+                          {
+                            backgroundColor: source.color,
+                            left: `${startOffset}%`,
+                            right: 0,
+                            top: index * HEIGHT,
+                            "--color": source.color,
+                          } as CSSProperties
+                        }
+                      >
+                        <span className="text-[10px] font-medium text-white">
+                          {source.name}
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+              <LineGraph
+                data={indexData.data}
+                color="#64748b"
+                label="AGI Index"
+                xAxisFormatter="MMM yyyy"
+                yAxisProps={{
+                  domain: [2024, 2100],
+                }}
+                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
+                lineProps={{
+                  min: 2020,
+                  max: 2130,
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
@@ -146,7 +214,7 @@ export default async function ServerRenderedPage() {
 
             <LineGraph
               data={metWeaklyGeneralAI?.datapoints || []}
-              color="#22c55e"
+              color="#dc2626"
               key="different-data"
               label="Metaculus Prediction (Year)"
               xAxisFormatter="MMM yyyy"
@@ -218,7 +286,7 @@ export default async function ServerRenderedPage() {
             </GraphTitle>
             <LineGraph
               data={fullAgiData ? fullAgiData.datapoints : []}
-              color="#06b6d4"
+              color="#2563eb"
               label="Metaculus Prediction (Year)"
               xAxisFormatter="MMM yyyy"
               yAxisProps={{
@@ -240,25 +308,6 @@ export default async function ServerRenderedPage() {
             />
           </div>
 
-          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <GraphTitle
-              title="When will AGI arrive? (Manifold Markets Distribution)"
-              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
-              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
-            />
-            {manifoldHistoricalData && (
-              <LineGraph
-                data={manifoldHistoricalData.data}
-                color="#4f46e5"
-                label="Manifold Prediction (Year)"
-                xAxisFormatter="MMM yyyy"
-                yAxisProps={{
-                  domain: [2020, 2055],
-                }}
-                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
-              />
-            )}
-          </div>
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
               title='Date of AI passing "difficult Turing Test" - Metaculus'
@@ -308,7 +357,7 @@ export default async function ServerRenderedPage() {
             </GraphTitle>
             <LineGraph
               data={turingTestData ? turingTestData.datapoints : []}
-              color="#0ea5e9"
+              color="#16a34a"
               label="Metaculus Prediction (Year)"
               xAxisFormatter="MMM yyyy"
               yAxisProps={{
@@ -332,13 +381,33 @@ export default async function ServerRenderedPage() {
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
+              title="When will AGI arrive? (Manifold Markets Distribution)"
+              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
+              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
+            />
+            {manifoldHistoricalData && (
+              <LineGraph
+                data={manifoldHistoricalData.data}
+                color="#9333ea"
+                label="Manifold Prediction (Year)"
+                xAxisFormatter="MMM yyyy"
+                yAxisProps={{
+                  domain: [2020, 2055],
+                }}
+                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
+              />
+            )}
+          </div>
+
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
               title="AI passes Turing test before 2030?"
               sourceUrl="https://kalshi.com/markets/kxaituring/ai-turing-test"
               tooltipContent=""
             />
             <LineGraph
               data={kalshiData}
-              color="#8b5cf6"
+              color="#ea580c"
               label="Kalshi Prediction (%)"
               xAxisFormatter="MMM d"
               yAxisProps={{
@@ -549,7 +618,10 @@ async function getIndexData() {
     }),
   ]);
 
-  let indexData: null | Awaited<ReturnType<typeof createIndex>> = null;
+  let indexData: null | {
+    data: Awaited<ReturnType<typeof createIndex>>["data"];
+    startDates: Awaited<ReturnType<typeof createIndex>>["startDates"];
+  } = null;
 
   if (
     metWeaklyGeneralAI.status === "fulfilled" &&

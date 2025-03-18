@@ -27,6 +27,7 @@ export function LineGraph({
   yAxisFormatter,
   tooltip,
   lineProps = {},
+  children,
 }: {
   data: ChartDataPoint[];
   color: string;
@@ -37,6 +38,7 @@ export function LineGraph({
   yAxisFormatter?: AnyFormatter;
   tooltip?: TooltipProps<number, string>["content"];
   lineProps?: Omit<LineProps, "ref">;
+  children?: React.ReactNode;
 }) {
   // Check if all data points have range values when distribution is requested
   const hasDistribution = data.every((point) => point.range !== undefined);
@@ -114,6 +116,7 @@ export function LineGraph({
             isAnimationActive={false}
             {...lineProps}
           />
+          {children}
         </ComposedChart>
       </ResponsiveContainer>
     </div>

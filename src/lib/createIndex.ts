@@ -46,6 +46,15 @@ export function createIndex(
   const turingTestPre = turingTestData.byYear;
   const manifoldPre = manifoldData.byYear;
 
+  // Get start dates for each source
+  const fullAgiStartDate = fullAgiPre[0].date;
+  const weakAgiStartDate = weakAgiPre[0].date;
+  const turingTestStartDate = turingTestPre[0].date;
+  const manifoldStartDate = manifoldPre[0].date;
+  const kalshiStartDate = kalshiData[0]?.date
+    ? new Date(kalshiData[0].date).getTime()
+    : Infinity;
+
   const fullAgi: ProcessedData[] = fullAgiData.byYear.map((item) => {
     const years = Array.from({ length: 176 }, (_, i) => {
       const year = 2024 + i;
@@ -222,11 +231,24 @@ export function createIndex(
   const errorDate = new Date("2020-02-02");
   const startIndex = data.findIndex((x) => new Date(x.date) >= errorDate);
 
+  const computedStartDate =
+    startIndex === -1 ? new Date(data[0].date).getTime() : errorDate.getTime();
+
+  // Get the latest start date between computed and individual sources
+  const startDates = {
+    computed: computedStartDate,
+    fullAgi: Math.max(fullAgiStartDate, computedStartDate),
+    weakAgi: Math.max(weakAgiStartDate, computedStartDate),
+    turingTest: Math.max(turingTestStartDate, computedStartDate),
+    manifold: Math.max(manifoldStartDate, computedStartDate),
+    kalshi: Math.max(kalshiStartDate, computedStartDate),
+  };
+
   if (startIndex === -1) {
-    return data;
+    return { data, startDates };
   }
 
-  return data.slice(startIndex);
+  return { data: data.slice(startIndex), startDates };
 }
 
 /**
