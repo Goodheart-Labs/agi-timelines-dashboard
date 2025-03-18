@@ -52,8 +52,8 @@ export default async function ServerRenderedPage() {
               <span className="mb-4 block text-4xl font-bold sm:text-6xl">
                 {indexData.data[indexData.data.length - 1].value}
               </span>{" "}
-              Our AGI index predicts artificial general intelligence will arrive
-              in {indexData.data[indexData.data.length - 1].value} as of{" "}
+              Our index estimates that Artificial General Intelligence will
+              arrive in {indexData.data[indexData.data.length - 1].value} as of{" "}
               <span className="inline-flex items-center">
                 {format(new Date(), "MMMM d, yyyy")}
                 <MobileFriendlyTooltip>
@@ -72,6 +72,31 @@ export default async function ServerRenderedPage() {
       {indexData && (
         <div className="mx-auto mb-6 w-full max-w-6xl space-y-6">
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
+              title="AGI Index"
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>This forecast is an average of the following forecasts:</p>
+                  <ul className="list-disc space-y-1 pl-4">
+                    <li>Date of &quot;weakly general AI&quot; - Metaculus</li>
+                    <li>Date of &quot;general AI&quot; - Metaculus</li>
+                    <li>When will AGI arrive? - Manifold</li>
+                    <li>
+                      Date of AI passing &quot;difficult Turing Test&quot; -
+                      Metaculus
+                    </li>
+                    <li>AI passes Turing test before 2030? - Kalshi</li>
+                  </ul>
+                  <p>
+                    For more detail, check the FAQ at the bottom of the page.
+                  </p>
+                </div>
+              }
+            >
+              <p className="text-sm text-gray-500">
+                An average of many different forecasts of AGI (shown below).
+              </p>
+            </GraphTitle>
             <div className="relative overflow-hidden">
               <div
                 className="index-bar-container relative"
@@ -144,7 +169,7 @@ export default async function ServerRenderedPage() {
               <LineGraph
                 data={indexData.data}
                 color="#64748b"
-                label="AGI Index"
+                label=""
                 xAxisFormatter="MMM yyyy"
                 yAxisProps={{
                   domain: [2024, 2100],
@@ -383,8 +408,45 @@ export default async function ServerRenderedPage() {
             <GraphTitle
               title="When will AGI arrive? (Manifold Markets Distribution)"
               sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
-              tooltipContent="Distribution of predictions for when AGI will first pass a high-quality Turing test"
-            />
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>
+                    The Manifold Markets question gives the following proposed
+                    criteria:
+                  </p>
+                  <p>
+                    &quot;For proposed testing criteria, refer to this Metaculus
+                    Question by Matthew Barnett, or the Longbets wager between
+                    Ray Kurzweil and Mitch Kapor.&quot;
+                  </p>
+                  <p>Our summary is there for that:</p>
+                  <p>
+                    This prediction resolves based on some high-quality Turing
+                    test of which iether the Metaculus or Long Bets one would
+                    probably be sufficient. This would likely involve a computer
+                    system demonstrating human-like intelligence through
+                    extended text-based conversations with expert judges who are
+                    actively trying to identify the AI.
+                  </p>
+                  <p>
+                    The test would require the AI to demonstrate natural
+                    language understanding, reasoning, knowledge across domains,
+                    and the ability to respond coherently to unexpected
+                    questions. Resolution would occur when a credible
+                    organization or panel confirms that an AI has successfully
+                    passed such a test, fooling a significant portion of
+                    qualified judges into believing it&apos;s human, while
+                    demonstrating capabilities consistent with general
+                    intelligence rather than narrow expertise.
+                  </p>
+                </div>
+              }
+            >
+              <p className="text-sm text-gray-500">
+                From the prediction market Manifold Markets, full title:
+                &quot;AGI When? [High Quality Turing Test]&quot;
+              </p>
+            </GraphTitle>
             {manifoldHistoricalData && (
               <LineGraph
                 data={manifoldHistoricalData.data}
@@ -403,7 +465,51 @@ export default async function ServerRenderedPage() {
             <GraphTitle
               title="AI passes Turing test before 2030?"
               sourceUrl="https://kalshi.com/markets/kxaituring/ai-turing-test"
-              tooltipContent=""
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>The Kalshi prediction market rules read:</p>
+                  <p>
+                    &quot;If Kurzweil has won his bet that AI will pass the
+                    Turing Test by December 31, 2029, then the market resolves
+                    to Yes. Outcome verified from{" "}
+                    <a
+                      href="https://longbets.org/1/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:text-blue-600"
+                    >
+                      Long Bets Foundation
+                    </a>
+                    .&quot;
+                  </p>
+                  <p>A summary of the rules of that bet:</p>
+                  <ul className="list-disc space-y-1 pl-4">
+                    <li>
+                      <strong>Format:</strong> 2-hour text-based interviews
+                      between judges and participants
+                    </li>
+                    <li>
+                      <strong>Participants:</strong> 3 human judges, 3 human
+                      foils, and 1 computer
+                    </li>
+                    <li>
+                      <strong>Test structure:</strong> Each judge interviews all
+                      4 participants (3 humans, 1 computer)
+                    </li>
+                    <li>
+                      <strong>Passing criteria:</strong> Computer must (1) fool
+                      at least 2 of 3 judges into thinking it&apos;s human AND
+                      (2) be ranked equal to or more human than at least 2 of
+                      the 3 human foils
+                    </li>
+                  </ul>
+                  <p>
+                    This famous bet between Ray Kurzweil and Mitchell Kapor
+                    resolves in 2029, with Kurzweil betting that a computer will
+                    pass the test by then.
+                  </p>
+                </div>
+              }
             />
             <LineGraph
               data={kalshiData}
@@ -469,50 +575,89 @@ export default async function ServerRenderedPage() {
             <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
               <Collapsible.Trigger className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
                 <h4 className="text-lg font-medium">
-                  How is the risk index calculated?
+                  How is the AGI index calculated?
                 </h4>
                 <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
               </Collapsible.Trigger>
               <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
                 <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                   <p>
-                    We have three individual data sources that relate to whether
-                    bird flu will be bad, but even if they all resolve positive,
-                    we might only have something like winter flu.
+                    Mostly the index is a straight average of each different
+                    source. There is one deviation and some clarifications.
                   </p>
                   <p>
-                    As a result I, Nathan Young, have used my professional
-                    judgement as a forecaster, to assign a conditional
-                    probability to each datasource that if it resolves positive,
-                    the actual central question does.
-                  </p>
-                  <p className="font-mono text-sm">
-                    ie P(bird flu as bad as covid) = P(bird flu as bad as covid
-                    | 10,000 US cases) x P(10,000 US cases)
+                    First, the Kalshi prediction. All the the other predictions
+                    are date predictions—forecasters were able to give their
+                    whole range of predictions. But the Kalshi prediction is a
+                    binary prediction—will the AI pass the Turing test before
+                    2030? It can only be answered with a yes or no.
                   </p>
                   <p>
-                    If this page gets lots of traffic, I will crowdsource P(bird
-                    flu as bad as covid | 10,000 US cases), but as it is, I made
-                    a guess.
+                    So I took the average of the other predictions, and then
+                    adjusted the weights of that prediction before and after
+                    2030 to make them match the Kalshi prediction. This formula
+                    is as follows:
                   </p>
-                  <p>
-                    Next we have three of these, and I have taken the average.
-                  </p>
-                  <p>So the full forecast is as follows:</p>
                   <p className="whitespace-pre-wrap font-mono text-sm">
-                    Index = ( Nathan&apos;s estimate of P(bird flu as bad as
-                    covid | 10,000 US cases) × Current Metaculus P(10,000 US
-                    cases) + Nathan&apos;s estimate of P(bird flu as bad as
-                    covid | 10,000 US cases) × Current Kalshi P(10,000 US cases)
-                    + Nathan&apos;s estimate of P(bird flu as bad as covid | CDC
-                    travel advisory) × Current Kalshi P(CDC travel advisory) ) ÷
-                    3
+                    P(AGI on date Xi, before 2030) = (average of all other
+                    predictions for date Xi / average of the sum of predictions
+                    on date Xi) * Kalshi P(AGI before 2030)
                   </p>
-                  <p>The weights are .5, .5 and .1 respectively.</p>
                   <p>
-                    I may be wrong here, but I really do not think a straight or
-                    weighted average is the right answer. I agree that I should
-                    take some group median on these made up values.
+                    And then the index is the average of all Xi values,
+                    including this new one for Kalshi.
+                  </p>
+                  <p>
+                    If you want a longer explanation, I&apos;ve tried putting
+                    this into claude and it seems to understand and be able to
+                    answer questions. So literaly copy the above block.
+                  </p>
+                  <p>
+                    As for the clarifications:
+                    <ul>
+                      <li>
+                        The Manifold prediction has a 2050 end date. There is a
+                        moderate bump in probability in this bucket. This should
+                        probably be clarified to mean that any time after 2049
+                        resolves to the 2050 bucket, since that seeems to be
+                        what people have understood it to mean. There isn&apos;t
+                        much probability in the bucket so we have ignored this,
+                        but we could return to it.
+                      </li>
+                      <li>
+                        The date precitions have different buckets. I can&apos;t
+                        remember what we did with them but I guess we averaged
+                        across buckets. This is plausibly less accurate than
+                        fitting them to a curve and using that to do a weighted
+                        average, but we&apos;re using it for medians, 10th and
+                        90th percentiles. I doubt it makes much difference.
+                      </li>
+                    </ul>
+                  </p>
+                </div>
+              </Collapsible.Content>
+            </Collapsible.Root>
+            <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
+              <Collapsible.Trigger className="group flex w-full items-center justify-between p-4 text-left">
+                <h4 className="text-lg font-medium">
+                  What does this mean for me?
+                </h4>
+                <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
+              </Collapsible.Trigger>
+              <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
+                <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                  <p>
+                    This site isn&apos;t here to tell you what to do about
+                    Artificial General Intelligence. But seeing our prediction
+                    of when it will arrive could cause you to make different
+                    choices.
+                  </p>
+                  <p>
+                    Whatever the current date is, that&apos;s my, Nathan
+                    Young&apos;s, best consensus guess at roughly when computers
+                    will do human work. I think that this world will be a
+                    strange one and that it&apos;s worth preparing both
+                    practically and emotionally.
                   </p>
                 </div>
               </Collapsible.Content>
