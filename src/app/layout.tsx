@@ -15,9 +15,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AGI Timelines Dashboard",
+  title: "When Will We Get AGI? | AGI Timelines Dashboard",
   description:
-    "Real-time monitoring of artificial general intelligence (AGI) timeline predictions",
+    "Crowd-sourced forecasts for when Artificial General Intelligence (AGI) will arrive. Aggregates Metaculus, Manifold, Kalshi, and more. See the best consensus on AGI timelines.",
+  openGraph: {
+    title: "When Will We Get AGI? | AGI Timelines Dashboard",
+    description:
+      "Crowd-sourced forecasts for when Artificial General Intelligence (AGI) will arrive. Aggregates Metaculus, Manifold, Kalshi, and more. See the best consensus on AGI timelines.",
+    url: "https://agi.goodheartlabs.com/",
+    siteName: "AGI Timelines Dashboard",
+    images: [
+      {
+        url: "/opengraph-image.png",
+        width: 1200,
+        height: 630,
+        alt: "When will we achieve AGI? agi.goodheartlabs.com dashboard preview",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "When Will We Get AGI? | AGI Timelines Dashboard",
+    description:
+      "Crowd-sourced forecasts for when Artificial General Intelligence (AGI) will arrive. Aggregates Metaculus, Manifold, Kalshi, and more. See the best consensus on AGI timelines.",
+    images: [
+      {
+        url: "/twitter-image.png",
+        alt: "When will we achieve AGI? agi.goodheartlabs.com dashboard preview",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
