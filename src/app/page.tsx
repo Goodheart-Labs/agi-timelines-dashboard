@@ -12,10 +12,10 @@ import { GraphTitle } from "@/components/GraphTitle";
 import Image from "next/image";
 import { CSSProperties } from "react";
 import {
-  INDEX_BAR_HEIGHT,
   GRAPH_COLORS,
-  SOURCE_NAMES,
+  INDEX_BAR_HEIGHT,
   INDEX_CUTOFF_DATE,
+  SOURCE_NAMES,
 } from "@/lib/constants";
 
 export const runtime = "nodejs";

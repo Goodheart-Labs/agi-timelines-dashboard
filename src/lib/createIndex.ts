@@ -23,13 +23,13 @@ import { ChartDataPoint } from "./types";
 import { fetchKalshiData } from "./services/kalshi";
 import { getNearestKalshiIndex } from "./kalshi/index-helpers";
 import {
+  INDEX_CUTOFF_DATE,
+  KALSHI_WEIGHT,
+  KALSHI_YEARS_BEFORE_CUTOFF,
   MS_PER_DAY,
+  OTHER_SOURCES_WEIGHT,
   START_YEAR,
   YEAR_RANGE,
-  INDEX_CUTOFF_DATE,
-  KALSHI_YEARS_BEFORE_CUTOFF,
-  OTHER_SOURCES_WEIGHT,
-  KALSHI_WEIGHT,
 } from "./constants";
 
 interface HasDate {

@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import { createIndex } from "./createIndex";
 import {
-  START_YEAR,
-  YEAR_RANGE,
+  KALSHI_WEIGHT,
   KALSHI_YEARS_BEFORE_CUTOFF,
   OTHER_SOURCES_WEIGHT,
-  KALSHI_WEIGHT,
+  START_YEAR,
+  YEAR_RANGE,
 } from "./constants";
 
 /**
