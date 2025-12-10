@@ -11,12 +11,16 @@ import { CustomTooltip } from "@/components/CustomTooltip";
 import { GraphTitle } from "@/components/GraphTitle";
 import Image from "next/image";
 import { CSSProperties } from "react";
+import {
+  INDEX_BAR_HEIGHT,
+  GRAPH_COLORS,
+  SOURCE_NAMES,
+  INDEX_CUTOFF_DATE,
+} from "@/lib/constants";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 export const dynamic = "force-static";
-
-const HEIGHT = 17;
 
 export default async function ServerRenderedPage() {
   const {
@@ -101,36 +105,36 @@ export default async function ServerRenderedPage() {
               <div
                 className="index-bar-container relative"
                 style={{
-                  height: 5 * HEIGHT,
+                  height: 5 * INDEX_BAR_HEIGHT,
                   marginLeft: 60,
                   marginRight: 16,
                 }}
               >
                 {[
                   {
-                    name: "Metaculus (Weak AGI)",
+                    name: SOURCE_NAMES.weakAgi,
                     startDate: indexData.startDates.weakAgi,
-                    color: "#dc2626",
+                    color: GRAPH_COLORS.weakAgi,
                   },
                   {
-                    name: "Metaculus (Full AGI)",
+                    name: SOURCE_NAMES.fullAgi,
                     startDate: indexData.startDates.fullAgi,
-                    color: "#2563eb",
+                    color: GRAPH_COLORS.fullAgi,
                   },
                   {
-                    name: "Metaculus (Turing)",
+                    name: SOURCE_NAMES.turingTest,
                     startDate: indexData.startDates.turingTest,
-                    color: "#16a34a",
+                    color: GRAPH_COLORS.turingTest,
                   },
                   {
-                    name: "Manifold",
+                    name: SOURCE_NAMES.manifold,
                     startDate: indexData.startDates.manifold,
-                    color: "#9333ea",
+                    color: GRAPH_COLORS.manifold,
                   },
                   {
-                    name: "Kalshi",
+                    name: SOURCE_NAMES.kalshi,
                     startDate: indexData.startDates.kalshi,
-                    color: "#ea580c",
+                    color: GRAPH_COLORS.kalshi,
                   },
                 ]
                   .sort((a, b) => a.startDate - b.startDate)
@@ -138,23 +142,25 @@ export default async function ServerRenderedPage() {
                     const startDate = new Date(source.startDate);
                     const endDate = new Date();
                     const totalRange =
-                      endDate.getTime() - new Date("2020-02-02").getTime();
+                      endDate.getTime() -
+                      new Date(INDEX_CUTOFF_DATE).getTime();
                     const startOffset =
                       ((startDate.getTime() -
-                        new Date("2020-02-02").getTime()) /
+                        new Date(INDEX_CUTOFF_DATE).getTime()) /
                         totalRange) *
                       100;
 
                     return (
                       <div
                         key={source.name}
-                        className="index-bar absolute flex h-[17px] items-center pl-2"
+                        className="index-bar absolute flex items-center pl-2"
                         style={
                           {
                             backgroundColor: source.color,
                             left: `${startOffset}%`,
                             right: 0,
-                            top: index * HEIGHT,
+                            top: index * INDEX_BAR_HEIGHT,
+                            height: INDEX_BAR_HEIGHT,
                             "--color": source.color,
                           } as CSSProperties
                         }
@@ -168,7 +174,7 @@ export default async function ServerRenderedPage() {
               </div>
               <LineGraph
                 data={indexData.data}
-                color="#64748b"
+                color={GRAPH_COLORS.index}
                 label=""
                 xAxisFormatter="MMM yyyy"
                 yAxisProps={{
@@ -239,7 +245,7 @@ export default async function ServerRenderedPage() {
 
             <LineGraph
               data={metWeaklyGeneralAI?.datapoints || []}
-              color="#dc2626"
+              color={GRAPH_COLORS.weakAgi}
               key="different-data"
               label="Metaculus Prediction (Year)"
               xAxisFormatter="MMM yyyy"
@@ -296,7 +302,7 @@ export default async function ServerRenderedPage() {
                     reasoning and describe its progress across all tasks.
                   </p>
                   <p>
-                    Resolution will come via, direct demostration of such,
+                    Resolution will come via direct demonstration of such,
                     confident credible statements from developers or judgement
                     by a special panel composed by Metaculus.
                   </p>
@@ -311,7 +317,7 @@ export default async function ServerRenderedPage() {
             </GraphTitle>
             <LineGraph
               data={fullAgiData ? fullAgiData.datapoints : []}
-              color="#2563eb"
+              color={GRAPH_COLORS.fullAgi}
               label="Metaculus Prediction (Year)"
               xAxisFormatter="MMM yyyy"
               yAxisProps={{
@@ -382,7 +388,7 @@ export default async function ServerRenderedPage() {
             </GraphTitle>
             <LineGraph
               data={turingTestData ? turingTestData.datapoints : []}
-              color="#16a34a"
+              color={GRAPH_COLORS.turingTest}
               label="Metaculus Prediction (Year)"
               xAxisFormatter="MMM yyyy"
               yAxisProps={{
@@ -450,7 +456,7 @@ export default async function ServerRenderedPage() {
             {manifoldHistoricalData && (
               <LineGraph
                 data={manifoldHistoricalData.data}
-                color="#9333ea"
+                color={GRAPH_COLORS.manifold}
                 label="Manifold Prediction (Year)"
                 xAxisFormatter="MMM yyyy"
                 yAxisProps={{
@@ -513,7 +519,7 @@ export default async function ServerRenderedPage() {
             />
             <LineGraph
               data={kalshiData}
-              color="#ea580c"
+              color={GRAPH_COLORS.kalshi}
               label="Kalshi Prediction (%)"
               xAxisFormatter="MMM d"
               yAxisProps={{
@@ -530,9 +536,9 @@ export default async function ServerRenderedPage() {
         <div className="mb-8 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
           <h3 className="mb-2 text-lg font-semibold">Stay Updated</h3>
           <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Get updated on if H5N1 risk levels change significantly or if we
-            build another dashboard for some comparable risk. Your email will
-            not be used for other purposes.
+            Get updated when AGI timeline forecasts change significantly or when
+            we build new forecasting dashboards. Your email will not be used for
+            other purposes.
           </p>
         </div>
         <div className="mb-8 mt-8 rounded-lg bg-white p-6 text-left shadow-lg dark:bg-gray-800">
@@ -559,7 +565,7 @@ export default async function ServerRenderedPage() {
                   <p>
                     It is always going to be possible to argue that the set of
                     averaged definitions is incorrectly weighted. To reduce
-                    biase I seek to accept all, long-term, repeating forecasts
+                    bias I seek to accept all, long-term, repeating forecasts
                     of AGI and then weight them equally. Perhaps we will
                     down-weight some if some if a single institution releases
                     many different AI forecasts
@@ -619,7 +625,7 @@ export default async function ServerRenderedPage() {
                         The Manifold prediction has a 2050 end date. There is a
                         moderate bump in probability in this bucket. This should
                         probably be clarified to mean that any time after 2049
-                        resolves to the 2050 bucket, since that seeems to be
+                        resolves to the 2050 bucket, since that seems to be
                         what people have understood it to mean. There isn&apos;t
                         much probability in the bucket so we have ignored this,
                         but we could return to it.

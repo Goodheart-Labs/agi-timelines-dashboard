@@ -38,11 +38,6 @@ export type MetaculusResponse = {
   };
 };
 
-export type MockDataSeries = {
-  riskIndex: ChartDataPoint[];
-  variantCount: ChartDataPoint[];
-};
-
 export type KalshiMarketData = {
   market: {
     ticker: string;
@@ -98,11 +93,6 @@ export type KalshiResponse = {
     interval: number;
   };
 };
-
-export type CdcDataPoint = {
-  Range: string;
-  Month: string;
-} & Record<string, string>;
 
 export type ManifoldResponse = {
   id: string;
