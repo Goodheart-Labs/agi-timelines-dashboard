@@ -178,7 +178,7 @@ export default async function ServerRenderedPage() {
                 label=""
                 xAxisFormatter="MMM yyyy"
                 yAxisProps={{
-                  domain: [2024, 2060],
+                  domain: [2024, 2100],
                 }}
                 tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
                 lineProps={{
