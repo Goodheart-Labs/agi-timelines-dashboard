@@ -104,7 +104,7 @@ export function CombinedForecastChart({
             }}
             stroke="currentColor"
             opacity={0.2}
-            domain={[2024, 2070]}
+            domain={[2024, 2060]}
             tickFormatter={(value) => String(value)}
           />
           <Tooltip
