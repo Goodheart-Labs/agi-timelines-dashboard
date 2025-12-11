@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -59,6 +60,8 @@ export function CombinedForecastChart({
   sources: ForecastSource[];
   indexData?: IndexDataPoint[];
 }) {
+  const [scale, setScale] = useState<"linear" | "log">("linear");
+
   // Combine all data points into a single dataset, keyed by date
   const dateMap = new Map<string, CombinedDataPoint>();
 
@@ -117,6 +120,14 @@ export function CombinedForecastChart({
 
   return (
     <div className="relative h-[400px] w-full">
+      <div className="absolute right-4 top-0 z-10">
+        <button
+          onClick={() => setScale(scale === "linear" ? "log" : "linear")}
+          className="rounded bg-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+        >
+          {scale === "linear" ? "Log" : "Linear"}
+        </button>
+      </div>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={combinedData}
@@ -149,6 +160,7 @@ export function CombinedForecastChart({
           />
           <YAxis
             width={45}
+            scale={scale}
             tick={{
               fontSize: 12,
               fill: "currentColor",
@@ -157,7 +169,7 @@ export function CombinedForecastChart({
             stroke="currentColor"
             opacity={0.2}
             domain={[Y_MIN, Y_MAX]}
-            tickFormatter={(value) => String(value)}
+            tickFormatter={(value) => String(Math.round(value))}
           />
           <Tooltip
             content={({ active, payload, label }) => {
