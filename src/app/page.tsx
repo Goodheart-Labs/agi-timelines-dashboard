@@ -1,5 +1,7 @@
 import { getManifoldHistoricalData } from "@/lib/services/manifold-historical.server";
 import { downloadMetaculusData } from "@/lib/services/metaculus-download.server";
+import { fetchKalshiData } from "@/lib/services/kalshi.server";
+import { createIndex } from "@/lib/createIndex";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { ChevronDownIcon } from "lucide-react";
 import { MobileFriendlyTooltip } from "@/components/MobileFriendlyTooltip";
@@ -16,8 +18,13 @@ export const maxDuration = 300;
 export const dynamic = "force-static";
 
 export default async function ServerRenderedPage() {
-  const { manifoldHistoricalData, metWeaklyGeneralAI, turingTestData, fullAgiData } =
-    await getForecastData();
+  const {
+    manifoldHistoricalData,
+    metWeaklyGeneralAI,
+    turingTestData,
+    fullAgiData,
+    indexData,
+  } = await getForecastData();
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
@@ -97,6 +104,7 @@ export default async function ServerRenderedPage() {
                 isTimestamp: false,
               },
             ]}
+            indexData={indexData}
           />
         </div>
       </div>
@@ -376,7 +384,6 @@ export default async function ServerRenderedPage() {
               />
             )}
           </div>
-
         </div>
       </main>
 
@@ -413,11 +420,11 @@ export default async function ServerRenderedPage() {
                   </p>
                   <p>
                     It is always going to be possible to argue that the set of
-                    averaged definitions is incorrectly weighted. To reduce
-                    bias I seek to accept all, long-term, repeating forecasts
-                    of AGI and then weight them equally. Perhaps we will
-                    down-weight some if some if a single institution releases
-                    many different AI forecasts
+                    averaged definitions is incorrectly weighted. To reduce bias
+                    I seek to accept all, long-term, repeating forecasts of AGI
+                    and then weight them equally. Perhaps we will down-weight
+                    some if some if a single institution releases many different
+                    AI forecasts
                   </p>
                   <p>
                     If you disagree, please get in touch. If you know of some
@@ -572,32 +579,58 @@ export default async function ServerRenderedPage() {
 }
 
 async function getForecastData() {
-  const [fullAgiData, metWeaklyGeneralAI, turingTestData, manifoldHistoricalData] =
-    await Promise.allSettled([
-      downloadMetaculusData(5121),
-      downloadMetaculusData(3479),
-      downloadMetaculusData(11861),
-      getManifoldHistoricalData("agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"),
-    ]);
+  const [
+    fullAgiData,
+    metWeaklyGeneralAI,
+    turingTestData,
+    manifoldHistoricalData,
+    kalshiData,
+  ] = await Promise.allSettled([
+    downloadMetaculusData(5121),
+    downloadMetaculusData(3479),
+    downloadMetaculusData(11861),
+    getManifoldHistoricalData(
+      "agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708",
+    ),
+    fetchKalshiData({
+      seriesTicker: "KXAITURING",
+      marketTicker: "AITURING",
+      marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
+      period_interval: 24 * 60,
+    }),
+  ]);
 
   if (
     metWeaklyGeneralAI.status === "fulfilled" &&
     fullAgiData.status === "fulfilled" &&
     turingTestData.status === "fulfilled" &&
-    manifoldHistoricalData.status === "fulfilled"
+    manifoldHistoricalData.status === "fulfilled" &&
+    kalshiData.status === "fulfilled"
   ) {
+    // Compute the index with all sources including Kalshi
+    const { data: indexData } = createIndex(
+      metWeaklyGeneralAI.value,
+      fullAgiData.value,
+      turingTestData.value,
+      manifoldHistoricalData.value,
+      kalshiData.value,
+    );
+
     return {
       metWeaklyGeneralAI: metWeaklyGeneralAI.value,
       fullAgiData: fullAgiData.value,
       turingTestData: turingTestData.value,
       manifoldHistoricalData: manifoldHistoricalData.value,
+      indexData,
     };
   }
 
   // Show which ones failed
   const failures = {
     metWeaklyGeneralAI:
-      metWeaklyGeneralAI.status === "rejected" ? metWeaklyGeneralAI.reason : null,
+      metWeaklyGeneralAI.status === "rejected"
+        ? metWeaklyGeneralAI.reason
+        : null,
     fullAgiData: fullAgiData.status === "rejected" ? fullAgiData.reason : null,
     turingTestData:
       turingTestData.status === "rejected" ? turingTestData.reason : null,
@@ -605,6 +638,7 @@ async function getForecastData() {
       manifoldHistoricalData.status === "rejected"
         ? manifoldHistoricalData.reason
         : null,
+    kalshiData: kalshiData.status === "rejected" ? kalshiData.reason : null,
   };
 
   console.error(`Error fetching data: ${JSON.stringify(failures)}`);

@@ -45,10 +45,12 @@ function createMockMetaculusData(
     datapoints: [{ date: new Date(startDate).toISOString(), value: 2035 }],
     byYear: [
       {
+        index: 0,
         date: startDate,
         years: Object.entries(yearProbabilities).map(([year, pdfValue]) => ({
           year: parseInt(year),
           pdfValue,
+          cdfValue: 0, // Not used in createIndex, but required by type
         })),
       },
     ],

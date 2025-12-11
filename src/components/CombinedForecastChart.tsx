@@ -30,6 +30,11 @@ type CombinedDataPoint = {
   [key: string]: number | string | [number, number] | undefined;
 };
 
+type IndexDataPoint = {
+  date: string;
+  range?: [number, number]; // [10th percentile, 90th percentile]
+};
+
 const Y_MIN = 2024;
 const Y_MAX = 2060;
 
@@ -49,8 +54,10 @@ function toSafeKey(name: string): string {
 
 export function CombinedForecastChart({
   sources,
+  indexData,
 }: {
   sources: ForecastSource[];
+  indexData?: IndexDataPoint[];
 }) {
   // Combine all data points into a single dataset, keyed by date
   const dateMap = new Map<string, CombinedDataPoint>();
@@ -78,21 +85,31 @@ export function CombinedForecastChart({
 
   // Convert to array, filter by cutoff date, and sort by date
   const cutoffTime = new Date(INDEX_CUTOFF_DATE).getTime();
-  const safeKeys = sources.map((s) => toSafeKey(s.name));
+
+  // Create a map of index data by date for quick lookup
+  const indexMap = new Map<string, [number, number]>();
+  if (indexData) {
+    for (const point of indexData) {
+      if (point.range) {
+        const dateKey = point.date.split("T")[0];
+        // Clamp the range values to Y_MIN and Y_MAX
+        indexMap.set(dateKey, [
+          clampYear(point.range[0]),
+          clampYear(point.range[1]),
+        ]);
+      }
+    }
+  }
 
   const combinedData = Array.from(dateMap.values())
     .filter((point) => new Date(point.date).getTime() >= cutoffTime)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((point) => {
-      // Compute min/max of all available source values for combined confidence interval
-      const values = safeKeys
-        .map((key) => point[key])
-        .filter((v): v is number => typeof v === "number");
-
-      if (values.length > 0) {
-        const min = Math.min(...values);
-        const max = Math.max(...values);
-        point.combinedRange = [min, max];
+      // Use index data for combined confidence interval (10th-90th percentile)
+      const dateKey = point.date.split("T")[0];
+      const indexRange = indexMap.get(dateKey);
+      if (indexRange) {
+        point.combinedRange = indexRange;
       }
 
       return point;
@@ -148,12 +165,12 @@ export function CombinedForecastChart({
 
               // Filter out the combinedRange from the main entries
               const lineEntries = payload.filter(
-                (entry) => entry.dataKey !== "combinedRange"
+                (entry) => entry.dataKey !== "combinedRange",
               );
 
               // Find the combined range entry
               const rangeEntry = payload.find(
-                (entry) => entry.dataKey === "combinedRange"
+                (entry) => entry.dataKey === "combinedRange",
               );
               const range = rangeEntry?.value as [number, number] | undefined;
 
