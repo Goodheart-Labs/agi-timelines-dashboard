@@ -126,6 +126,7 @@ export function CombinedForecastChart({
             stroke="currentColor"
             opacity={0.2}
             domain={[2024, 2060]}
+            allowDataOverflow={true}
             tickFormatter={(value) => String(value)}
           />
           <Tooltip
