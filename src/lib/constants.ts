@@ -22,6 +22,7 @@ export const KALSHI_WEIGHT = 0.2;
 
 // UI constants
 export const INDEX_BAR_HEIGHT = 17;
+export const INDEX_DISPLAY_CAP = 2060; // Cap displayed values at this year (show "2060+" for higher)
 
 // Graph colors by source
 export const GRAPH_COLORS = {
