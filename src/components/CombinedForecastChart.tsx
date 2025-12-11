@@ -14,7 +14,7 @@ import {
 import { ChartDataPoint } from "../lib/types";
 import { getFormatter } from "@/lib/dates";
 import { format } from "date-fns";
-import { INDEX_CUTOFF_DATE } from "@/lib/constants";
+import { INDEX_CUTOFF_DATE, GRAPH_COLORS } from "@/lib/constants";
 
 type ForecastSource = {
   name: string;
@@ -87,9 +87,24 @@ export function CombinedForecastChart({
 
   // Convert to array, filter by cutoff date, and sort by date
   const cutoffTime = new Date(INDEX_CUTOFF_DATE).getTime();
+  const safeKeys = sources.map((s) => toSafeKey(s.name));
+
   const combinedData = Array.from(dateMap.values())
     .filter((point) => new Date(point.date).getTime() >= cutoffTime)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map((point) => {
+      // Compute index as average of all available source values
+      const values = safeKeys
+        .map((key) => point[key])
+        .filter((v): v is number => typeof v === "number");
+
+      if (values.length > 0) {
+        const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
+        point.index = Math.round(avg);
+      }
+
+      return point;
+    });
 
   return (
     <div className="relative h-[400px] w-full">
@@ -226,6 +241,18 @@ export function CombinedForecastChart({
               />
             );
           })}
+          {/* Index line - average of all sources */}
+          <Line
+            key="index"
+            type="monotone"
+            dataKey="index"
+            name="Index"
+            stroke={GRAPH_COLORS.index}
+            strokeWidth={3}
+            dot={false}
+            connectNulls
+            isAnimationActive={false}
+          />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
