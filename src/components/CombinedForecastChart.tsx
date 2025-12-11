@@ -124,7 +124,7 @@ export function CombinedForecastChart({
             top: 20,
             right: 16,
             left: 16,
-            bottom: 80,
+            bottom: 60,
           }}
         >
           <CartesianGrid
@@ -219,7 +219,7 @@ export function CombinedForecastChart({
           <Legend
             verticalAlign="bottom"
             height={36}
-            wrapperStyle={{ paddingTop: 40 }}
+            wrapperStyle={{ paddingTop: 20 }}
           />
           {/* Combined confidence interval area (behind lines) */}
           <Area
