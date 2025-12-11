@@ -34,6 +34,11 @@ function timestampToYear(seconds: number): number {
   return new Date(seconds * 1000).getFullYear();
 }
 
+// Create a safe key from source name (remove special chars)
+function toSafeKey(name: string): string {
+  return name.replace(/[^a-zA-Z0-9]/g, "_");
+}
+
 export function CombinedForecastChart({
   sources,
 }: {
@@ -43,6 +48,8 @@ export function CombinedForecastChart({
   const dateMap = new Map<string, CombinedDataPoint>();
 
   for (const source of sources) {
+    const safeKey = toSafeKey(source.name);
+
     for (const point of source.data) {
       // Normalize date to just YYYY-MM-DD for combining
       const dateKey = point.date.split("T")[0];
@@ -57,11 +64,11 @@ export function CombinedForecastChart({
       const value = source.isTimestamp
         ? timestampToYear(point.value)
         : point.value;
-      existing[source.name] = value;
+      existing[safeKey] = value;
 
       // Also store the range for confidence intervals
       if (point.range) {
-        const rangeKey = `${source.name}_range`;
+        const rangeKey = `${safeKey}_range`;
         const [min, max] = point.range;
         const convertedRange: [number, number] = source.isTimestamp
           ? [timestampToYear(min), timestampToYear(max)]
@@ -137,9 +144,9 @@ export function CombinedForecastChart({
                   </p>
                   <div className="space-y-1">
                     {lineEntries.map((entry) => {
-                      // Find the corresponding range
+                      // Find the corresponding range using the safe key
                       const rangeEntry = payload.find(
-                        (p) => p.dataKey === `${entry.dataKey}_range`
+                        (p) => p.dataKey === `${String(entry.dataKey)}_range`
                       );
                       const range = rangeEntry?.value as
                         | [number, number]
@@ -179,33 +186,39 @@ export function CombinedForecastChart({
             wrapperStyle={{ paddingTop: 40 }}
           />
           {/* Render areas first (behind lines) */}
-          {sources.map((source) => (
-            <Area
-              key={`${source.name}_area`}
-              type="monotone"
-              dataKey={`${source.name}_range`}
-              fill={source.color}
-              fillOpacity={0.15}
-              stroke="none"
-              connectNulls
-              isAnimationActive={false}
-              legendType="none"
-            />
-          ))}
+          {sources.map((source) => {
+            const safeKey = toSafeKey(source.name);
+            return (
+              <Area
+                key={`${safeKey}_area`}
+                type="monotone"
+                dataKey={`${safeKey}_range`}
+                fill={source.color}
+                fillOpacity={0.15}
+                stroke="none"
+                connectNulls
+                isAnimationActive={false}
+                legendType="none"
+              />
+            );
+          })}
           {/* Render lines on top */}
-          {sources.map((source) => (
-            <Line
-              key={source.name}
-              type="monotone"
-              dataKey={source.name}
-              name={source.name}
-              stroke={source.color}
-              strokeWidth={2}
-              dot={false}
-              connectNulls
-              isAnimationActive={false}
-            />
-          ))}
+          {sources.map((source) => {
+            const safeKey = toSafeKey(source.name);
+            return (
+              <Line
+                key={safeKey}
+                type="monotone"
+                dataKey={safeKey}
+                name={source.name}
+                stroke={source.color}
+                strokeWidth={2}
+                dot={false}
+                connectNulls
+                isAnimationActive={false}
+              />
+            );
+          })}
         </ComposedChart>
       </ResponsiveContainer>
     </div>
