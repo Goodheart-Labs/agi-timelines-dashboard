@@ -13,7 +13,7 @@ import {
 import { ChartDataPoint } from "../lib/types";
 import { getFormatter } from "@/lib/dates";
 import { format } from "date-fns";
-import { INDEX_CUTOFF_DATE, GRAPH_COLORS } from "@/lib/constants";
+import { GRAPH_COLORS, INDEX_CUTOFF_DATE } from "@/lib/constants";
 
 type ForecastSource = {
   name: string;
