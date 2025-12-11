@@ -184,12 +184,9 @@ export default async function ServerRenderedPage() {
                 xAxisFormatter="MMM yyyy"
                 yAxisProps={{
                   domain: [2024, INDEX_DISPLAY_CAP],
+                  allowDataOverflow: true,
                 }}
                 tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
-                lineProps={{
-                  min: 2020,
-                  max: 2130,
-                }}
               />
             </div>
           </div>
