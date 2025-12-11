@@ -51,5 +51,5 @@ export function getInterpolatedValue(
   }
 
   console.log("No data found for", targetDate);
-  return 0;
+  return undefined;
 }

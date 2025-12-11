@@ -22,6 +22,15 @@ import { getManifoldHistoricalData } from "./services/manifold-historical";
 import { ChartDataPoint } from "./types";
 import { fetchKalshiData } from "./services/kalshi";
 import { getNearestKalshiIndex } from "./kalshi/index-helpers";
+import {
+  INDEX_CUTOFF_DATE,
+  KALSHI_WEIGHT,
+  KALSHI_YEARS_BEFORE_CUTOFF,
+  MS_PER_DAY,
+  OTHER_SOURCES_WEIGHT,
+  START_YEAR,
+  YEAR_RANGE,
+} from "./constants";
 
 interface HasDate {
   date: number;
@@ -56,8 +65,8 @@ export function createIndex(
     : Infinity;
 
   const fullAgi: ProcessedData[] = fullAgiData.byYear.map((item) => {
-    const years = Array.from({ length: 176 }, (_, i) => {
-      const year = 2024 + i;
+    const years = Array.from({ length: YEAR_RANGE }, (_, i) => {
+      const year = START_YEAR + i;
       const found = item.years.find((x) => x.year === year);
       if (!found) return 0;
       return found.pdfValue;
@@ -74,8 +83,8 @@ export function createIndex(
   });
 
   const weakAgi: ProcessedData[] = weakAgiData.byYear.map((item) => {
-    const years = Array.from({ length: 176 }, (_, i) => {
-      const year = 2024 + i;
+    const years = Array.from({ length: YEAR_RANGE }, (_, i) => {
+      const year = START_YEAR + i;
       const found = item.years.find((x) => x.year === year);
       if (!found) return 0;
       return found.pdfValue;
@@ -92,8 +101,8 @@ export function createIndex(
   });
 
   const turingTest: ProcessedData[] = turingTestData.byYear.map((item) => {
-    const years = Array.from({ length: 176 }, (_, i) => {
-      const year = 2024 + i;
+    const years = Array.from({ length: YEAR_RANGE }, (_, i) => {
+      const year = START_YEAR + i;
       const found = item.years.find((x) => x.year === year);
       if (!found) return 0;
       return found.pdfValue;
@@ -113,14 +122,14 @@ export function createIndex(
     // Find last year present in the probabilities
     const lastYear = Math.max(...Object.keys(item.probabilities).map(Number));
 
-    // Find number of years from last year to 2199, inclusive
-    const numYears = 2199 - lastYear + 1;
+    // Find number of years from last year to END_YEAR, inclusive
+    const numYears = START_YEAR + YEAR_RANGE - 1 - lastYear + 1;
 
     // Spread the probability of the final year over all final years
     const spread = item.probabilities[lastYear]! / numYears;
 
-    const years = Array.from({ length: 176 }, (_, i) => {
-      const year = 2024 + i;
+    const years = Array.from({ length: YEAR_RANGE }, (_, i) => {
+      const year = START_YEAR + i;
       if (year < lastYear) {
         const found = item.probabilities[year];
         if (!found) return 0;
@@ -160,7 +169,7 @@ export function createIndex(
   const data: ChartDataPoint[] = [];
 
   // We'll iterate over each day in the range
-  for (let date = startDate; date <= endDate; date += 86400000) {
+  for (let date = startDate; date <= endDate; date += MS_PER_DAY) {
     // Get the nearest data point for each of the three sources
 
     const samples = [
@@ -171,7 +180,7 @@ export function createIndex(
     ].filter((x) => x !== null);
 
     // For the samples that exist, find the average for each year
-    let averages = Array.from({ length: 176 }, (_, i) => {
+    let averages = Array.from({ length: YEAR_RANGE }, (_, i) => {
       const sum = samples.reduce((acc, curr) => acc + curr.years[i], 0);
       return sum / samples.length;
     });
@@ -184,10 +193,10 @@ export function createIndex(
     if (kalshiIndex) {
       const kalshiValue = kalshiData[kalshiIndex];
       const probabilityBefore2030 = averages
-        .slice(0, 6)
+        .slice(0, KALSHI_YEARS_BEFORE_CUTOFF)
         .reduce((acc, curr) => acc + curr, 0);
       const probabilityAfter2030 = averages
-        .slice(6)
+        .slice(KALSHI_YEARS_BEFORE_CUTOFF)
         .reduce((acc, curr) => acc + curr, 0);
 
       const kalshiProbability = kalshiValue.value / 100;
@@ -195,13 +204,16 @@ export function createIndex(
       const scalingFactorAfter = (1 - kalshiProbability) / probabilityAfter2030;
 
       const kalshiAverages = averages.map((prob, i) => {
-        const scalar = i < 6 ? scalingFactorBefore : scalingFactorAfter;
+        const scalar =
+          i < KALSHI_YEARS_BEFORE_CUTOFF
+            ? scalingFactorBefore
+            : scalingFactorAfter;
         return prob * scalar;
       });
 
       // Factor in kalshi averages as 1/5 of the total
       averages = averages.map((prob, i) => {
-        return prob * 0.8 + kalshiAverages[i] * 0.2;
+        return prob * OTHER_SOURCES_WEIGHT + kalshiAverages[i] * KALSHI_WEIGHT;
       });
     }
 
@@ -212,12 +224,12 @@ export function createIndex(
     let upper = 0;
 
     let sum = 0;
-    for (let i = 0; i < 176; i++) {
+    for (let i = 0; i < YEAR_RANGE; i++) {
       const value = averages[i];
       sum += value;
-      if (sum >= 0.1 && !lower) lower = i + 2024;
-      if (sum >= 0.5 && !median) median = i + 2024;
-      if (sum >= 0.9 && !upper) upper = i + 2024;
+      if (sum >= 0.1 && !lower) lower = i + START_YEAR;
+      if (sum >= 0.5 && !median) median = i + START_YEAR;
+      if (sum >= 0.9 && !upper) upper = i + START_YEAR;
     }
 
     data.push({
@@ -227,8 +239,8 @@ export function createIndex(
     });
   }
 
-  // Slice the data to only begin after February 2nd, 2020
-  const errorDate = new Date("2020-02-02");
+  // Slice the data to only begin after the cutoff date
+  const errorDate = new Date(INDEX_CUTOFF_DATE);
   const startIndex = data.findIndex((x) => new Date(x.date) >= errorDate);
 
   const computedStartDate =
@@ -257,10 +269,10 @@ export function createIndex(
  */
 function getNearest<T extends HasDate>(data: T[], date: number): T | null {
   // Convert timestamps to start of day for comparison
-  const targetDay = Math.floor(date / 86400000) * 86400000;
+  const targetDay = Math.floor(date / MS_PER_DAY) * MS_PER_DAY;
 
   const match = data.find((item) => {
-    const itemDay = Math.floor(item.date / 86400000) * 86400000;
+    const itemDay = Math.floor(item.date / MS_PER_DAY) * MS_PER_DAY;
     return itemDay === targetDay;
   });
 
