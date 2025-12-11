@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Area,
   CartesianGrid,
   ComposedChart,
   Legend,
@@ -19,13 +18,13 @@ type ForecastSource = {
   name: string;
   data: ChartDataPoint[];
   color: string;
-  /** If true, values are timestamps in seconds that need conversion to years */
+  /** If true, values are ms timestamps that need conversion to years */
   isTimestamp?: boolean;
 };
 
 type CombinedDataPoint = {
   date: string;
-  [key: string]: number | string | [number, number] | undefined;
+  [key: string]: number | string | undefined;
 };
 
 function timestampToYear(seconds: number): number {
@@ -51,22 +50,11 @@ export function CombinedForecastChart({
       }
 
       const existing = dateMap.get(dateKey)!;
-
       // Convert timestamp to year if needed
       const value = source.isTimestamp
         ? timestampToYear(point.value)
         : point.value;
       existing[source.name] = value;
-
-      // Also store the range for confidence intervals
-      if (point.range) {
-        const rangeKey = `${source.name}_range`;
-        const [min, max] = point.range;
-        const convertedRange: [number, number] = source.isTimestamp
-          ? [timestampToYear(min), timestampToYear(max)]
-          : [min, max];
-        existing[rangeKey] = convertedRange;
-      }
     }
   }
 
@@ -123,49 +111,29 @@ export function CombinedForecastChart({
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
 
-              // Filter out the range entries from tooltip
-              const lineEntries = payload.filter(
-                (entry) => !String(entry.dataKey).endsWith("_range")
-              );
-
               return (
                 <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                   <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
                     {format(new Date(label), "MMM d, yyyy")}
                   </p>
                   <div className="space-y-1">
-                    {lineEntries.map((entry) => {
-                      // Find the corresponding range
-                      const rangeEntry = payload.find(
-                        (p) => p.dataKey === `${entry.dataKey}_range`
-                      );
-                      const range = rangeEntry?.value as
-                        | [number, number]
-                        | undefined;
-
-                      return (
+                    {payload.map((entry) => (
+                      <div
+                        key={entry.dataKey}
+                        className="flex items-center gap-2"
+                      >
                         <div
-                          key={entry.dataKey}
-                          className="flex items-center gap-2"
-                        >
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-300">
-                            {entry.name}:
-                          </span>
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {entry.value}
-                            {range && (
-                              <span className="ml-1 text-xs text-gray-500">
-                                ({range[0]}-{range[1]})
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      );
-                    })}
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {entry.name}:
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {entry.value}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
@@ -176,21 +144,6 @@ export function CombinedForecastChart({
             height={36}
             wrapperStyle={{ paddingTop: 40 }}
           />
-          {/* Render areas first (behind lines) */}
-          {sources.map((source) => (
-            <Area
-              key={`${source.name}_area`}
-              type="monotone"
-              dataKey={`${source.name}_range`}
-              fill={source.color}
-              fillOpacity={0.15}
-              stroke="none"
-              connectNulls
-              isAnimationActive={false}
-              legendType="none"
-            />
-          ))}
-          {/* Render lines on top */}
           {sources.map((source) => (
             <Line
               key={source.name}
