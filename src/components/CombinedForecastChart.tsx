@@ -29,9 +29,16 @@ type CombinedDataPoint = {
   [key: string]: number | string | [number, number] | undefined;
 };
 
+const Y_MIN = 2024;
+const Y_MAX = 2060;
+
 function timestampToYear(seconds: number): number {
   // Metaculus stores timestamps in seconds, JS Date expects milliseconds
   return new Date(seconds * 1000).getFullYear();
+}
+
+function clampYear(year: number): number {
+  return Math.min(Math.max(year, Y_MIN), Y_MAX);
 }
 
 // Create a safe key from source name (remove special chars)
@@ -60,19 +67,19 @@ export function CombinedForecastChart({
 
       const existing = dateMap.get(dateKey)!;
 
-      // Convert timestamp to year if needed
-      const value = source.isTimestamp
+      // Convert timestamp to year if needed, then clamp to bounds
+      const rawValue = source.isTimestamp
         ? timestampToYear(point.value)
         : point.value;
-      existing[safeKey] = value;
+      existing[safeKey] = clampYear(rawValue);
 
-      // Also store the range for confidence intervals
+      // Also store the range for confidence intervals (clamped)
       if (point.range) {
         const rangeKey = `${safeKey}_range`;
         const [min, max] = point.range;
         const convertedRange: [number, number] = source.isTimestamp
-          ? [timestampToYear(min), timestampToYear(max)]
-          : [min, max];
+          ? [clampYear(timestampToYear(min)), clampYear(timestampToYear(max))]
+          : [clampYear(min), clampYear(max)];
         existing[rangeKey] = convertedRange;
       }
     }
@@ -125,8 +132,7 @@ export function CombinedForecastChart({
             }}
             stroke="currentColor"
             opacity={0.2}
-            domain={[2024, 2060]}
-            allowDataOverflow={true}
+            domain={[Y_MIN, Y_MAX]}
             tickFormatter={(value) => String(value)}
           />
           <Tooltip
