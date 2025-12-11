@@ -15,6 +15,7 @@ import {
   GRAPH_COLORS,
   INDEX_BAR_HEIGHT,
   INDEX_CUTOFF_DATE,
+  INDEX_DISPLAY_CAP,
   SOURCE_NAMES,
 } from "@/lib/constants";
 
@@ -54,10 +55,14 @@ export default async function ServerRenderedPage() {
           ) : (
             <>
               <span className="mb-4 block text-4xl font-bold sm:text-6xl">
-                {indexData.data[indexData.data.length - 1].value}
+                {indexData.data[indexData.data.length - 1].value > INDEX_DISPLAY_CAP
+                  ? `${INDEX_DISPLAY_CAP}+`
+                  : indexData.data[indexData.data.length - 1].value}
               </span>{" "}
               Our index estimates that Artificial General Intelligence will
-              arrive in {indexData.data[indexData.data.length - 1].value} as of{" "}
+              arrive in {indexData.data[indexData.data.length - 1].value > INDEX_DISPLAY_CAP
+                ? `${INDEX_DISPLAY_CAP}+`
+                : indexData.data[indexData.data.length - 1].value} as of{" "}
               <span className="inline-flex items-center">
                 {format(new Date(), "MMMM d, yyyy")}
                 <MobileFriendlyTooltip>
@@ -178,7 +183,7 @@ export default async function ServerRenderedPage() {
                 label=""
                 xAxisFormatter="MMM yyyy"
                 yAxisProps={{
-                  domain: [2024, 2100],
+                  domain: [2024, INDEX_DISPLAY_CAP],
                 }}
                 tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
                 lineProps={{
