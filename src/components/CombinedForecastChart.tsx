@@ -13,6 +13,7 @@ import {
 import { ChartDataPoint } from "../lib/types";
 import { getFormatter } from "@/lib/dates";
 import { format } from "date-fns";
+import { INDEX_CUTOFF_DATE } from "@/lib/constants";
 
 type ForecastSource = {
   name: string;
@@ -58,10 +59,11 @@ export function CombinedForecastChart({
     }
   }
 
-  // Convert to array and sort by date
-  const combinedData = Array.from(dateMap.values()).sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
+  // Convert to array, filter by cutoff date, and sort by date
+  const cutoffTime = new Date(INDEX_CUTOFF_DATE).getTime();
+  const combinedData = Array.from(dateMap.values())
+    .filter((point) => new Date(point.date).getTime() >= cutoffTime)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return (
     <div className="relative h-[400px] w-full">
