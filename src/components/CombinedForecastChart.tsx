@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Area,
   CartesianGrid,
   ComposedChart,
   Legend,
@@ -25,7 +26,8 @@ type ForecastSource = {
 
 type CombinedDataPoint = {
   date: string;
-  [key: string]: number | string | undefined;
+  combinedRange?: [number, number];
+  [key: string]: number | string | [number, number] | undefined;
 };
 
 const Y_MIN = 2024;
@@ -82,14 +84,15 @@ export function CombinedForecastChart({
     .filter((point) => new Date(point.date).getTime() >= cutoffTime)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map((point) => {
-      // Compute index as average of all available source values
+      // Compute min/max of all available source values for combined confidence interval
       const values = safeKeys
         .map((key) => point[key])
         .filter((v): v is number => typeof v === "number");
 
       if (values.length > 0) {
-        const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
-        point.index = Math.round(avg);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        point.combinedRange = [min, max];
       }
 
       return point;
@@ -143,13 +146,24 @@ export function CombinedForecastChart({
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
 
+              // Filter out the combinedRange from the main entries
+              const lineEntries = payload.filter(
+                (entry) => entry.dataKey !== "combinedRange"
+              );
+
+              // Find the combined range entry
+              const rangeEntry = payload.find(
+                (entry) => entry.dataKey === "combinedRange"
+              );
+              const range = rangeEntry?.value as [number, number] | undefined;
+
               return (
                 <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                   <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
                     {format(new Date(label), "MMM d, yyyy")}
                   </p>
                   <div className="space-y-1">
-                    {payload.map((entry) => (
+                    {lineEntries.map((entry) => (
                       <div
                         key={entry.dataKey}
                         className="flex items-center gap-2"
@@ -166,6 +180,20 @@ export function CombinedForecastChart({
                         </span>
                       </div>
                     ))}
+                    {range && (
+                      <div className="flex items-center gap-2 border-t border-gray-200 pt-1 dark:border-gray-600">
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: GRAPH_COLORS.index }}
+                        />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          Combined range:
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {range[0]}-{range[1]}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -175,6 +203,17 @@ export function CombinedForecastChart({
             verticalAlign="bottom"
             height={36}
             wrapperStyle={{ paddingTop: 40 }}
+          />
+          {/* Combined confidence interval area (behind lines) */}
+          <Area
+            type="monotone"
+            dataKey="combinedRange"
+            name="Combined Confidence Interval"
+            fill={GRAPH_COLORS.index}
+            fillOpacity={0.2}
+            stroke="none"
+            connectNulls
+            isAnimationActive={false}
           />
           {/* Render source lines */}
           {sources.map((source) => {
@@ -193,18 +232,6 @@ export function CombinedForecastChart({
               />
             );
           })}
-          {/* Index line - average of all sources */}
-          <Line
-            key="index"
-            type="monotone"
-            dataKey="index"
-            name="Index"
-            stroke={GRAPH_COLORS.index}
-            strokeWidth={3}
-            dot={false}
-            connectNulls
-            isAnimationActive={false}
-          />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
