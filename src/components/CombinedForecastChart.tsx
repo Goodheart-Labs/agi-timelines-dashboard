@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Area,
   CartesianGrid,
   ComposedChart,
   Legend,
@@ -26,7 +25,7 @@ type ForecastSource = {
 
 type CombinedDataPoint = {
   date: string;
-  [key: string]: number | string | [number, number] | undefined;
+  [key: string]: number | string | undefined;
 };
 
 const Y_MIN = 2024;
@@ -72,16 +71,6 @@ export function CombinedForecastChart({
         ? timestampToYear(point.value)
         : point.value;
       existing[safeKey] = clampYear(rawValue);
-
-      // Also store the range for confidence intervals (clamped)
-      if (point.range) {
-        const rangeKey = `${safeKey}_range`;
-        const [min, max] = point.range;
-        const convertedRange: [number, number] = source.isTimestamp
-          ? [clampYear(timestampToYear(min)), clampYear(timestampToYear(max))]
-          : [clampYear(min), clampYear(max)];
-        existing[rangeKey] = convertedRange;
-      }
     }
   }
 
@@ -154,49 +143,29 @@ export function CombinedForecastChart({
             content={({ active, payload, label }) => {
               if (!active || !payload?.length) return null;
 
-              // Filter out the range entries from tooltip
-              const lineEntries = payload.filter(
-                (entry) => !String(entry.dataKey).endsWith("_range")
-              );
-
               return (
                 <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
                   <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
                     {format(new Date(label), "MMM d, yyyy")}
                   </p>
                   <div className="space-y-1">
-                    {lineEntries.map((entry) => {
-                      // Find the corresponding range using the safe key
-                      const rangeEntry = payload.find(
-                        (p) => p.dataKey === `${String(entry.dataKey)}_range`
-                      );
-                      const range = rangeEntry?.value as
-                        | [number, number]
-                        | undefined;
-
-                      return (
+                    {payload.map((entry) => (
+                      <div
+                        key={entry.dataKey}
+                        className="flex items-center gap-2"
+                      >
                         <div
-                          key={entry.dataKey}
-                          className="flex items-center gap-2"
-                        >
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-300">
-                            {entry.name}:
-                          </span>
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                            {entry.value}
-                            {range && (
-                              <span className="ml-1 text-xs text-gray-500">
-                                ({range[0]}-{range[1]})
-                              </span>
-                            )}
-                          </span>
-                        </div>
-                      );
-                    })}
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          {entry.name}:
+                        </span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {entry.value}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
@@ -207,24 +176,7 @@ export function CombinedForecastChart({
             height={36}
             wrapperStyle={{ paddingTop: 40 }}
           />
-          {/* Render areas first (behind lines) */}
-          {sources.map((source) => {
-            const safeKey = toSafeKey(source.name);
-            return (
-              <Area
-                key={`${safeKey}_area`}
-                type="monotone"
-                dataKey={`${safeKey}_range`}
-                fill={source.color}
-                fillOpacity={0.15}
-                stroke="none"
-                connectNulls
-                isAnimationActive={false}
-                legendType="none"
-              />
-            );
-          })}
-          {/* Render lines on top */}
+          {/* Render source lines */}
           {sources.map((source) => {
             const safeKey = toSafeKey(source.name);
             return (
