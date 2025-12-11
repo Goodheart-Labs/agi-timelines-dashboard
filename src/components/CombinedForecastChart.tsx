@@ -27,8 +27,9 @@ type CombinedDataPoint = {
   [key: string]: number | string | undefined;
 };
 
-function timestampToYear(ms: number): number {
-  return new Date(ms).getFullYear();
+function timestampToYear(seconds: number): number {
+  // Metaculus stores timestamps in seconds, JS Date expects milliseconds
+  return new Date(seconds * 1000).getFullYear();
 }
 
 export function CombinedForecastChart({
