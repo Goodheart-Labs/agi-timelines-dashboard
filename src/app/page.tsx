@@ -24,6 +24,7 @@ export default async function ServerRenderedPage() {
     metWeaklyGeneralAI,
     turingTestData,
     fullAgiData,
+    kalshiData,
     indexData,
   } = await getForecastData();
 
@@ -426,6 +427,54 @@ export default async function ServerRenderedPage() {
               isTimestamp={false}
             />
           </div>
+
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
+              title="Will AI pass the Turing Test before 2030? (Kalshi)"
+              sourceUrl="https://kalshi.com/markets/aituring/ai-passes-turing-test"
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>
+                    This is a binary prediction market on Kalshi asking whether
+                    AI will pass a legitimate Turing test before 2030.
+                  </p>
+                  <p>
+                    The market resolves YES if, before January 1, 2030, a
+                    credible AI system passes a Turing test administered by a
+                    reputable organization.
+                  </p>
+                  <p>
+                    Unlike the other forecasts which predict a specific year,
+                    this shows the probability that AGI-level AI arrives before
+                    a fixed date.
+                  </p>
+                </div>
+              }
+            >
+              <p className="text-sm text-gray-500">
+                From the prediction market Kalshi. Shows probability (0-100%)
+                that AI passes the Turing test before 2030.
+              </p>
+            </GraphTitle>
+            <LineGraph
+              data={kalshiData}
+              color={GRAPH_COLORS.kalshi}
+              label="Kalshi Prediction (% before 2030)"
+              xAxisFormatter="MMM yyyy"
+              yAxisProps={{
+                domain: [0, 100],
+                tickFormatter: (value: number) => `${value}%`,
+              }}
+              tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
+            />
+            <GraphFooter
+              sourceName="Kalshi"
+              sourceUrl="https://kalshi.com/markets/aituring/ai-passes-turing-test"
+              data={kalshiData}
+              filename="kalshi-turing-test.csv"
+              isTimestamp={false}
+            />
+          </div>
         </div>
       </main>
 
@@ -714,6 +763,7 @@ async function getForecastData() {
       fullAgiData: fullAgiData.value,
       turingTestData: turingTestData.value,
       manifoldHistoricalData: manifoldHistoricalData.value,
+      kalshiData: kalshiData.value,
       indexData,
     };
   }
