@@ -150,12 +150,28 @@ export function CombinedForecastChart({
   return (
     <div className="relative h-[400px] w-full">
       <div className="absolute right-4 top-0 z-10">
-        <button
-          onClick={() => setScale(scale === "linear" ? "log" : "linear")}
-          className="rounded bg-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-        >
-          {scale === "linear" ? "Log" : "Linear"}
-        </button>
+        <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
+          <button
+            onClick={() => setScale("log")}
+            className={`px-2 py-1 ${
+              scale === "log"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            }`}
+          >
+            Log
+          </button>
+          <button
+            onClick={() => setScale("linear")}
+            className={`px-2 py-1 ${
+              scale === "linear"
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            }`}
+          >
+            Linear
+          </button>
+        </div>
       </div>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
@@ -164,7 +180,7 @@ export function CombinedForecastChart({
             top: 20,
             right: 16,
             left: 16,
-            bottom: 60,
+            bottom: 50,
           }}
         >
           <CartesianGrid
@@ -272,7 +288,25 @@ export function CombinedForecastChart({
           <Legend
             verticalAlign="bottom"
             height={36}
-            wrapperStyle={{ paddingTop: 20 }}
+            wrapperStyle={{ paddingTop: 10 }}
+            formatter={(value) => (
+              <span className="text-xs text-gray-600 dark:text-gray-300">
+                {value}
+              </span>
+            )}
+            iconSize={12}
+            payload={[
+              {
+                value: "Combined Confidence Interval",
+                type: "square",
+                color: GRAPH_COLORS.index,
+              },
+              ...sources.map((source) => ({
+                value: source.name,
+                type: "line" as const,
+                color: source.color,
+              })),
+            ]}
           />
           {/* Combined confidence interval area (behind lines) */}
           <Area
