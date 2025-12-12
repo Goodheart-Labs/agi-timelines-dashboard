@@ -149,7 +149,7 @@ export function CombinedForecastChart({
 
   return (
     <div className="relative h-[400px] w-full">
-      <div className="absolute right-4 top-0 z-10">
+      <div className="absolute -top-8 right-0 z-10">
         <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
           <button
             onClick={() => setScale("log")}
