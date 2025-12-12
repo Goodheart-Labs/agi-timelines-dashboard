@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Area,
   CartesianGrid,
@@ -16,6 +17,7 @@ import {
 } from "recharts";
 import { ChartDataPoint } from "../lib/types";
 import { AnyFormatter, getFormatter } from "@/lib/dates";
+import { smoothData } from "@/lib/smoothData";
 
 export function LineGraph({
   data,
@@ -27,6 +29,7 @@ export function LineGraph({
   yAxisFormatter,
   tooltip,
   lineProps = {},
+  smoothing = 0,
   children,
 }: {
   data: ChartDataPoint[];
@@ -38,10 +41,20 @@ export function LineGraph({
   yAxisFormatter?: AnyFormatter;
   tooltip?: TooltipProps<number, string>["content"];
   lineProps?: Omit<LineProps, "ref">;
+  /** Moving average window size. 0 or 1 means no smoothing. */
+  smoothing?: number;
   children?: React.ReactNode;
 }) {
+  // Apply smoothing if requested
+  const chartData = useMemo(() => {
+    if (smoothing > 1) {
+      return smoothData(data, smoothing);
+    }
+    return data;
+  }, [data, smoothing]);
+
   // Check if all data points have range values when distribution is requested
-  const hasDistribution = data.every((point) => point.range !== undefined);
+  const hasDistribution = chartData.every((point) => point.range !== undefined);
 
   return (
     <div className="relative h-[320px] w-full">
@@ -50,7 +63,7 @@ export function LineGraph({
       </div>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
-          data={data}
+          data={chartData}
           margin={{
             top: 40,
             right: 16,

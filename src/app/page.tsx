@@ -185,6 +185,7 @@ export default async function ServerRenderedPage() {
                   min: 2020,
                   max: 2130,
                 }}
+                smoothing={7}
               />
             </div>
           </div>
@@ -265,6 +266,7 @@ export default async function ServerRenderedPage() {
                   labelFormatter="MMM d, yyyy"
                 />
               }
+              smoothing={7}
             />
           </div>
 
@@ -336,6 +338,7 @@ export default async function ServerRenderedPage() {
                   labelFormatter="MMM d, yyyy"
                 />
               }
+              smoothing={7}
             />
           </div>
 
@@ -407,6 +410,7 @@ export default async function ServerRenderedPage() {
                   labelFormatter="MMM d, yyyy"
                 />
               }
+              smoothing={7}
             />
           </div>
 
@@ -463,6 +467,7 @@ export default async function ServerRenderedPage() {
                   domain: [2020, 2055],
                 }}
                 tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
+                smoothing={7}
               />
             )}
           </div>
@@ -526,6 +531,7 @@ export default async function ServerRenderedPage() {
                 domain: [60, 80],
               }}
               tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
+              smoothing={7}
             />
           </div>
         </div>
