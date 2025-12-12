@@ -38,6 +38,7 @@ type IndexDataPoint = {
 
 const Y_MIN = 2024;
 const Y_MAX = 2060;
+const BASE_YEAR = 2024;
 
 function timestampToYear(seconds: number): number {
   // Metaculus stores timestamps in seconds, JS Date expects milliseconds
@@ -46,6 +47,16 @@ function timestampToYear(seconds: number): number {
 
 function clampYear(year: number): number {
   return Math.min(Math.max(year, Y_MIN), Y_MAX);
+}
+
+// Transform year to "years from base" for log scale (add 1 to avoid log(0))
+function yearToLogValue(year: number): number {
+  return year - BASE_YEAR + 1;
+}
+
+// Transform log value back to year for display
+function logValueToYear(logValue: number): number {
+  return Math.round(logValue + BASE_YEAR - 1);
 }
 
 // Create a safe key from source name (remove special chars)
@@ -104,6 +115,8 @@ export function CombinedForecastChart({
     }
   }
 
+  const safeKeys = sources.map((s) => toSafeKey(s.name));
+
   const combinedData = Array.from(dateMap.values())
     .filter((point) => new Date(point.date).getTime() >= cutoffTime)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -113,6 +126,22 @@ export function CombinedForecastChart({
       const indexRange = indexMap.get(dateKey);
       if (indexRange) {
         point.combinedRange = indexRange;
+      }
+
+      // Transform values for log scale
+      if (scale === "log") {
+        for (const key of safeKeys) {
+          const val = point[key];
+          if (typeof val === "number") {
+            point[key] = yearToLogValue(val);
+          }
+        }
+        if (point.combinedRange) {
+          point.combinedRange = [
+            yearToLogValue(point.combinedRange[0]),
+            yearToLogValue(point.combinedRange[1]),
+          ];
+        }
       }
 
       return point;
@@ -168,8 +197,16 @@ export function CombinedForecastChart({
             }}
             stroke="currentColor"
             opacity={0.2}
-            domain={[Y_MIN, Y_MAX]}
-            tickFormatter={(value) => String(Math.round(value))}
+            domain={
+              scale === "log"
+                ? [yearToLogValue(Y_MIN), yearToLogValue(Y_MAX)]
+                : [Y_MIN, Y_MAX]
+            }
+            tickFormatter={(value) =>
+              scale === "log"
+                ? String(logValueToYear(value))
+                : String(Math.round(value))
+            }
           />
           <Tooltip
             content={({ active, payload, label }) => {
@@ -205,7 +242,9 @@ export function CombinedForecastChart({
                           {entry.name}:
                         </span>
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {entry.value}
+                          {scale === "log" && typeof entry.value === "number"
+                            ? logValueToYear(entry.value)
+                            : entry.value}
                         </span>
                       </div>
                     ))}
@@ -219,7 +258,9 @@ export function CombinedForecastChart({
                           Combined range:
                         </span>
                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {range[0]}-{range[1]}
+                          {scale === "log"
+                            ? `${logValueToYear(range[0])}-${logValueToYear(range[1])}`
+                            : `${range[0]}-${range[1]}`}
                         </span>
                       </div>
                     )}
