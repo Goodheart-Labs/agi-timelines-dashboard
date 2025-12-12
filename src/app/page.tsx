@@ -427,22 +427,21 @@ export default async function ServerRenderedPage() {
                 <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                   <p>
                     There is significant disagreement about what constitutes
-                    AGI. Rather than pick one definition, we aggregate
-                    predictions across different definitions to capture the
-                    broader expert consensus on transformative AI timelines.
+                    AGI. Rather than pick one definition, we aggregate and
+                    display predictions across different definitions to capture
+                    the broader expert consensus on transformative AI timelines.
                   </p>
                   <p>
                     It is always going to be possible to argue that the set of
                     averaged definitions is incorrectly weighted. To reduce bias
-                    I seek to accept all, long-term, repeating forecasts of AGI
-                    and then weight them equally. Perhaps we will down-weight
-                    some if some if a single institution releases many different
-                    AI forecasts
+                    I seek to accept all, long-term or highly liquid forecasts
+                    of AGI and then weight them equally. Perhaps we will
+                    down-weight some if a single institution releases many
+                    different AI forecasts.
                   </p>
                   <p>
                     If you disagree, please get in touch. If you know of some
-                    other repeating forecast of AGI that I have not included,
-                    let me know.
+                    other forecast of AGI that I have not included, let me know.
                   </p>
                 </div>
               </Collapsible.Content>
@@ -450,45 +449,74 @@ export default async function ServerRenderedPage() {
             <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
               <Collapsible.Trigger className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
                 <h4 className="text-lg font-medium">
-                  What forecasts are shown?
+                  How is the single date (and confidence area) created?
                 </h4>
                 <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
               </Collapsible.Trigger>
               <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
                 <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                   <p>
-                    The chart shows median year predictions from four different
-                    sources:
+                    All of these charts are turned into a single index—the index
+                    is a straight average of each different source. There is one
+                    deviation and some clarifications.
                   </p>
-                  <ul className="list-disc space-y-1 pl-4">
-                    <li>
-                      <strong>Metaculus (Weak AGI)</strong> - When will the
-                      first &quot;weakly general&quot; AI system be publicly
-                      announced?
-                    </li>
-                    <li>
-                      <strong>Metaculus (Full AGI)</strong> - When will the
-                      first general AI system be publicly announced?
-                    </li>
-                    <li>
-                      <strong>Metaculus (Turing)</strong> - When will an AI
-                      first pass a long, informed, adversarial Turing test?
-                    </li>
-                    <li>
-                      <strong>Manifold</strong> - AGI When? A prediction market
-                      on when AGI will arrive.
-                    </li>
-                  </ul>
                   <p>
-                    Each line shows the median year prediction from that source
-                    over time. Note that these sources use different definitions
-                    of AGI, which explains some of the variation between them.
+                    <strong>The Kalshi prediction:</strong> All the other
+                    predictions are date predictions—forecasters were able to
+                    give their whole range of predictions. But the Kalshi
+                    prediction is a binary prediction—will the AI pass the
+                    Turing test before 2030? It can only be answered with a yes
+                    or no.
+                  </p>
+                  <p>
+                    So I took the average of the other predictions, and then
+                    adjusted the weights of that prediction before and after
+                    2030 to make them match the Kalshi prediction. This formula
+                    is as follows:
+                  </p>
+                  <p className="rounded bg-gray-100 p-3 font-mono text-sm dark:bg-gray-700">
+                    P(AGI on date Xi, before 2030) = (average of all other
+                    predictions for date Xi / average of the sum of predictions
+                    on date Xi) * Kalshi P(AGI before 2030)
+                  </p>
+                  <p>
+                    And then the index is the average of all Xi values,
+                    including this new one for Kalshi.
+                  </p>
+                  <p>
+                    If you want a longer explanation, I&apos;ve tried putting
+                    this into Claude and it seems to understand and be able to
+                    answer questions. So literally copy the above block.
+                  </p>
+                  <p>
+                    <strong>The confidence area:</strong> This is the 80% (10th
+                    and 90th) confidence interval on the lines in the chart.
+                    It&apos;s not just the union of their own 80% confidence
+                    intervals, since that would be far wider.
+                  </p>
+                  <p>
+                    <strong>The Manifold prediction:</strong> This has a 2050
+                    end date. There is a moderate bump in probability in this
+                    bucket. This should probably be clarified to mean that any
+                    time after 2049 resolves to the 2050 bucket, since that
+                    seems to be what people have understood it to mean. There
+                    isn&apos;t much probability in the bucket so we have ignored
+                    this, but we could return to it.
+                  </p>
+                  <p>
+                    <strong>Date prediction buckets:</strong> The date
+                    predictions have different buckets. I can&apos;t remember
+                    what we did with them but I guess we averaged across
+                    buckets. This is plausibly less accurate than fitting them
+                    to a curve and using that to do a weighted average, but
+                    we&apos;re using it for medians, 10th and 90th percentiles.
+                    I doubt it makes much difference.
                   </p>
                 </div>
               </Collapsible.Content>
             </Collapsible.Root>
             <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
-              <Collapsible.Trigger className="group flex w-full items-center justify-between p-4 text-left">
+              <Collapsible.Trigger className="group flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
                 <h4 className="text-lg font-medium">
                   What does this mean for me?
                 </h4>
@@ -498,9 +526,9 @@ export default async function ServerRenderedPage() {
                 <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                   <p>
                     This site isn&apos;t here to tell you what to do about
-                    Artificial General Intelligence. But seeing our prediction
-                    of when it will arrive could cause you to make different
-                    choices.
+                    Artificial General Intelligence. But seeing these
+                    predictions of when it will arrive could cause you to make
+                    different choices.
                   </p>
                   <p>
                     Whatever the current date is, that&apos;s my, Nathan
