@@ -53,9 +53,8 @@ export default async function ServerRenderedPage() {
               </span>
               {indexData[indexData.length - 1].range && (
                 <span className="mb-3 block text-base text-gray-500 dark:text-gray-400">
-                  80% confidence interval:{" "}
-                  {indexData[indexData.length - 1].range![0]}–
-                  {indexData[indexData.length - 1].range![1]}
+                  (80% confidence: {indexData[indexData.length - 1].range![0]} –{" "}
+                  {indexData[indexData.length - 1].range![1]})
                 </span>
               )}
               Our combined forecast estimates AGI will arrive in{" "}
@@ -543,6 +542,29 @@ export default async function ServerRenderedPage() {
                     will do human work. I think that this world will be a
                     strange one and that it&apos;s worth preparing both
                     practically and emotionally.
+                  </p>
+                </div>
+              </Collapsible.Content>
+            </Collapsible.Root>
+            <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
+              <Collapsible.Trigger className="group flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
+                <h4 className="text-lg font-medium">Why 80% confidence?</h4>
+                <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
+              </Collapsible.Trigger>
+              <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
+                <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                  <p>
+                    The 80% confidence interval is calculated using the 10th and
+                    90th percentiles from the combined forecast distribution.
+                    This means there&apos;s roughly a 10% chance AGI arrives
+                    before the lower bound and a 10% chance it arrives after the
+                    upper bound.
+                  </p>
+                  <p>
+                    We chose 80% because it provides a meaningful range without
+                    being so wide as to be uninformative. This could change in
+                    the future if there&apos;s good reason to use a different
+                    interval.
                   </p>
                 </div>
               </Collapsible.Content>
