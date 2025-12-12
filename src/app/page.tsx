@@ -480,15 +480,7 @@ export default async function ServerRenderedPage() {
 
       {/* Footer */}
       <footer className="mx-auto mt-8 w-full max-w-6xl text-center text-sm text-gray-500 dark:text-gray-400">
-        <div className="mb-8 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-          <h3 className="mb-2 text-lg font-semibold">Stay Updated</h3>
-          <p className="mb-4 text-gray-600 dark:text-gray-300">
-            Get updated when AGI timeline forecasts change significantly or when
-            we build new forecasting dashboards. Your email will not be used for
-            other purposes.
-          </p>
-        </div>
-        <div className="mb-8 mt-8 rounded-lg bg-white p-6 text-left shadow-lg dark:bg-gray-800">
+        <div className="mb-8 rounded-lg bg-white p-6 text-left shadow-lg dark:bg-gray-800">
           <h3 className="mb-6 text-2xl font-semibold">
             Frequently Asked Questions
           </h3>
