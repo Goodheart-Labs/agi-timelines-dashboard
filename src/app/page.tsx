@@ -42,9 +42,22 @@ export default async function ServerRenderedPage() {
             the FAQ for more.
           </MobileFriendlyTooltip>
         </h1>
-        <p className="mb-4 text-lg text-gray-700 dark:text-gray-300">
-          Comparing forecasts from Metaculus and Manifold Markets on when AGI
-          will arrive, as of {format(new Date(), "MMMM d, yyyy")}.
+        <p className="mb-4 text-2xl text-gray-700 dark:text-gray-300">
+          {indexData && indexData.length > 0 ? (
+            <>
+              <span className="mb-2 block text-5xl font-bold sm:text-7xl">
+                {indexData[indexData.length - 1].value}
+              </span>
+              Our combined forecast estimates AGI will arrive in{" "}
+              {indexData[indexData.length - 1].value}, as of{" "}
+              {format(new Date(), "MMMM d, yyyy")}.
+            </>
+          ) : (
+            <>
+              Comparing forecasts from Metaculus and Manifold Markets on when
+              AGI will arrive, as of {format(new Date(), "MMMM d, yyyy")}.
+            </>
+          )}
         </p>
       </header>
 
