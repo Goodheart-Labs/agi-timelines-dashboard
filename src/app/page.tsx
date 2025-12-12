@@ -12,6 +12,7 @@ import { GraphTitle } from "@/components/GraphTitle";
 import Image from "next/image";
 import { CombinedForecastChart } from "@/components/CombinedForecastChart";
 import { GraphFooter } from "@/components/GraphFooter";
+import { IndividualForecastChart } from "@/components/IndividualForecastChart";
 import { GRAPH_COLORS, SOURCE_NAMES } from "@/lib/constants";
 
 export const runtime = "nodejs";
@@ -50,6 +51,13 @@ export default async function ServerRenderedPage() {
               <span className="mb-2 block text-5xl font-bold sm:text-7xl">
                 {indexData[indexData.length - 1].value}
               </span>
+              {indexData[indexData.length - 1].range && (
+                <span className="mb-3 block text-base text-gray-500 dark:text-gray-400">
+                  80% confidence interval:{" "}
+                  {indexData[indexData.length - 1].range![0]}–
+                  {indexData[indexData.length - 1].range![1]}
+                </span>
+              )}
               Our combined forecast estimates AGI will arrive in{" "}
               {indexData[indexData.length - 1].value}, as of{" "}
               {format(new Date(), "MMMM d, yyyy")}.
@@ -176,35 +184,14 @@ export default async function ServerRenderedPage() {
               </p>
             </GraphTitle>
 
-            <LineGraph
+            <IndividualForecastChart
               data={metWeaklyGeneralAI?.datapoints || []}
               color={GRAPH_COLORS.weakAgi}
-              key="different-data"
               label="Metaculus Prediction (Year)"
-              xAxisFormatter="MMM yyyy"
-              yAxisProps={{
-                scale: "log",
-                domain: metWeaklyGeneralAI?.question
-                  ? [
-                      metWeaklyGeneralAI.question.scaling.range_min,
-                      metWeaklyGeneralAI.question.scaling.range_max,
-                    ]
-                  : undefined,
-              }}
-              yAxisFormatter="ms:yyyy"
-              tooltip={
-                <CustomTooltip
-                  formatter="ms:yyyy-MM-dd"
-                  labelFormatter="MMM d, yyyy"
-                />
-              }
-            />
-            <GraphFooter
+              isTimestamp={true}
               sourceName="Metaculus"
               sourceUrl="https://www.metaculus.com/questions/3479/date-weakly-general-ai-is-publicly-known/"
-              data={metWeaklyGeneralAI?.datapoints || []}
               filename="metaculus-weak-agi.csv"
-              isTimestamp={true}
             />
           </div>
 
@@ -255,34 +242,14 @@ export default async function ServerRenderedPage() {
                 announced?&quot;
               </p>
             </GraphTitle>
-            <LineGraph
-              data={fullAgiData ? fullAgiData.datapoints : []}
+            <IndividualForecastChart
+              data={fullAgiData?.datapoints || []}
               color={GRAPH_COLORS.fullAgi}
               label="Metaculus Prediction (Year)"
-              xAxisFormatter="MMM yyyy"
-              yAxisProps={{
-                scale: "linear",
-                domain: fullAgiData
-                  ? [
-                      fullAgiData.question.scaling.range_min,
-                      fullAgiData.question.scaling.range_max,
-                    ]
-                  : undefined,
-              }}
-              yAxisFormatter="ms:yyyy"
-              tooltip={
-                <CustomTooltip
-                  formatter="ms:yyyy-MM-dd"
-                  labelFormatter="MMM d, yyyy"
-                />
-              }
-            />
-            <GraphFooter
+              isTimestamp={true}
               sourceName="Metaculus"
               sourceUrl="https://www.metaculus.com/questions/5121/date-of-artificial-general-intelligence/"
-              data={fullAgiData?.datapoints || []}
               filename="metaculus-full-agi.csv"
-              isTimestamp={true}
             />
           </div>
 
@@ -333,34 +300,14 @@ export default async function ServerRenderedPage() {
                 test?&quot;
               </p>
             </GraphTitle>
-            <LineGraph
-              data={turingTestData ? turingTestData.datapoints : []}
+            <IndividualForecastChart
+              data={turingTestData?.datapoints || []}
               color={GRAPH_COLORS.turingTest}
               label="Metaculus Prediction (Year)"
-              xAxisFormatter="MMM yyyy"
-              yAxisProps={{
-                scale: "linear",
-                domain: turingTestData
-                  ? [
-                      turingTestData.question.scaling.range_min,
-                      turingTestData.question.scaling.range_max,
-                    ]
-                  : undefined,
-              }}
-              yAxisFormatter="ms:yyyy"
-              tooltip={
-                <CustomTooltip
-                  formatter="ms:yyyy-MM-dd"
-                  labelFormatter="MMM d, yyyy"
-                />
-              }
-            />
-            <GraphFooter
+              isTimestamp={true}
               sourceName="Metaculus"
               sourceUrl="https://www.metaculus.com/questions/11861/when-will-ai-pass-a-difficult-turing-test/"
-              data={turingTestData?.datapoints || []}
               filename="metaculus-turing-test.csv"
-              isTimestamp={true}
             />
           </div>
 
@@ -407,24 +354,14 @@ export default async function ServerRenderedPage() {
                 &quot;AGI When? [High Quality Turing Test]&quot;
               </p>
             </GraphTitle>
-            {manifoldHistoricalData && (
-              <LineGraph
-                data={manifoldHistoricalData.data}
-                color={GRAPH_COLORS.manifold}
-                label="Manifold Prediction (Year)"
-                xAxisFormatter="MMM yyyy"
-                yAxisProps={{
-                  domain: [2020, 2055],
-                }}
-                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
-              />
-            )}
-            <GraphFooter
+            <IndividualForecastChart
+              data={manifoldHistoricalData?.data || []}
+              color={GRAPH_COLORS.manifold}
+              label="Manifold Prediction (Year)"
+              isTimestamp={false}
               sourceName="Manifold Markets"
               sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
-              data={manifoldHistoricalData?.data || []}
               filename="manifold-agi.csv"
-              isTimestamp={false}
             />
           </div>
 
