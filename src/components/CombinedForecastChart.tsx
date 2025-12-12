@@ -177,10 +177,10 @@ export function CombinedForecastChart({
         <ComposedChart
           data={combinedData}
           margin={{
-            top: 20,
+            top: 10,
             right: 16,
             left: 16,
-            bottom: 50,
+            bottom: 40,
           }}
         >
           <CartesianGrid
@@ -286,9 +286,9 @@ export function CombinedForecastChart({
             }}
           />
           <Legend
-            verticalAlign="bottom"
+            verticalAlign="top"
             height={36}
-            wrapperStyle={{ paddingTop: 10 }}
+            wrapperStyle={{ paddingBottom: 10 }}
             formatter={(value) => (
               <span className="text-xs text-gray-600 dark:text-gray-300">
                 {value}
