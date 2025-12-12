@@ -148,196 +148,286 @@ export function CombinedForecastChart({
     });
 
   return (
-    <div className="relative h-[400px] w-full">
-      <div className="absolute -top-8 right-0 z-10">
-        <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
-          <button
-            onClick={() => setScale("log")}
-            className={`px-2 py-1 ${
-              scale === "log"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            }`}
+    <div className="relative w-full">
+      <div className="h-[400px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={combinedData}
+            margin={{
+              top: 10,
+              right: 16,
+              left: 16,
+              bottom: 40,
+            }}
           >
-            Log
-          </button>
-          <button
-            onClick={() => setScale("linear")}
-            className={`px-2 py-1 ${
-              scale === "linear"
-                ? "bg-blue-500 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            }`}
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="currentColor"
+              opacity={0.1}
+            />
+            <XAxis
+              dataKey="date"
+              tick={{
+                fontSize: 12,
+                // @ts-expect-error recharts types are wrong
+                angle: -45,
+                textAnchor: "end",
+                dy: 5,
+                fill: "currentColor",
+                opacity: 0.65,
+              }}
+              stroke="currentColor"
+              opacity={0.2}
+              tickFormatter={getFormatter("MMM yyyy")}
+            />
+            <YAxis
+              width={45}
+              scale={scale}
+              tick={{
+                fontSize: 12,
+                fill: "currentColor",
+                opacity: 0.65,
+              }}
+              stroke="currentColor"
+              opacity={0.2}
+              domain={
+                scale === "log"
+                  ? [yearToLogValue(Y_MIN), yearToLogValue(Y_MAX)]
+                  : [Y_MIN, Y_MAX]
+              }
+              tickFormatter={(value) =>
+                scale === "log"
+                  ? String(logValueToYear(value))
+                  : String(Math.round(value))
+              }
+            />
+            <Tooltip
+              content={({ active, payload, label }) => {
+                if (!active || !payload?.length) return null;
+
+                // Filter out the combinedRange from the main entries
+                const lineEntries = payload.filter(
+                  (entry) => entry.dataKey !== "combinedRange",
+                );
+
+                // Find the combined range entry
+                const rangeEntry = payload.find(
+                  (entry) => entry.dataKey === "combinedRange",
+                );
+                const range = rangeEntry?.value as [number, number] | undefined;
+
+                return (
+                  <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                    <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
+                      {format(new Date(label), "MMM d, yyyy")}
+                    </p>
+                    <div className="space-y-1">
+                      {lineEntries.map((entry) => (
+                        <div
+                          key={entry.dataKey}
+                          className="flex items-center gap-2"
+                        >
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{ backgroundColor: entry.color }}
+                          />
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
+                            {entry.name}:
+                          </span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {scale === "log" && typeof entry.value === "number"
+                              ? logValueToYear(entry.value)
+                              : entry.value}
+                          </span>
+                        </div>
+                      ))}
+                      {range && (
+                        <div className="flex items-center gap-2 border-t border-gray-200 pt-1 dark:border-gray-600">
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{ backgroundColor: GRAPH_COLORS.index }}
+                          />
+                          <span className="text-sm text-gray-600 dark:text-gray-300">
+                            Combined range:
+                          </span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            {scale === "log"
+                              ? `${logValueToYear(range[0])}-${logValueToYear(range[1])}`
+                              : `${range[0]}-${range[1]}`}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }}
+            />
+            <Legend
+              verticalAlign="top"
+              height={36}
+              wrapperStyle={{ paddingBottom: 10 }}
+              formatter={(value) => (
+                <span className="text-xs text-gray-600 dark:text-gray-300">
+                  {value}
+                </span>
+              )}
+              iconSize={12}
+              payload={[
+                ...sources.map((source) => ({
+                  value: source.name,
+                  type: "line" as const,
+                  color: source.color,
+                })),
+                {
+                  value: "Combined Confidence Interval",
+                  type: "square",
+                  color: GRAPH_COLORS.index,
+                },
+              ]}
+            />
+            {/* Combined confidence interval area (behind lines) */}
+            <Area
+              type="monotone"
+              dataKey="combinedRange"
+              name="Combined Confidence Interval"
+              fill={GRAPH_COLORS.index}
+              fillOpacity={0.2}
+              stroke="none"
+              connectNulls
+              isAnimationActive={false}
+            />
+            {/* Render source lines */}
+            {sources.map((source) => {
+              const safeKey = toSafeKey(source.name);
+              return (
+                <Line
+                  key={safeKey}
+                  type="monotone"
+                  dataKey={safeKey}
+                  name={source.name}
+                  stroke={source.color}
+                  strokeWidth={2}
+                  dot={false}
+                  connectNulls
+                  isAnimationActive={false}
+                />
+              );
+            })}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Footer with controls and data source */}
+      <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+        <div>
+          <span>Data sources: </span>
+          <a
+            href="https://www.metaculus.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
           >
-            Linear
+            Metaculus
+          </a>
+          {", "}
+          <a
+            href="https://manifold.markets"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Manifold
+          </a>
+          {", "}
+          <a
+            href="https://kalshi.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            Kalshi
+          </a>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              const csvRows = [
+                "# AGI Timeline Forecasts Data",
+                "# For errors or questions, contact: nathan@goodhartlabs.com",
+                "#",
+                `# Downloaded: ${new Date().toISOString()}`,
+                "#",
+                [
+                  "Date",
+                  ...sources.map((s) => s.name),
+                  "Confidence Interval Lower",
+                  "Confidence Interval Upper",
+                ].join(","),
+              ];
+
+              for (const point of combinedData) {
+                const values = sources.map((s) => {
+                  const key = toSafeKey(s.name);
+                  const val = point[key];
+                  if (typeof val !== "number") return "";
+                  return scale === "log" ? logValueToYear(val) : val;
+                });
+                const range = point.combinedRange as
+                  | [number, number]
+                  | undefined;
+                const lower = range
+                  ? scale === "log"
+                    ? logValueToYear(range[0])
+                    : range[0]
+                  : "";
+                const upper = range
+                  ? scale === "log"
+                    ? logValueToYear(range[1])
+                    : range[1]
+                  : "";
+                csvRows.push(
+                  [point.date.split("T")[0], ...values, lower, upper].join(","),
+                );
+              }
+
+              const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "agi-timeline-forecasts.csv";
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="text-blue-500 hover:underline"
+          >
+            Download data
           </button>
+
+          <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
+            <button
+              onClick={() => setScale("log")}
+              className={`px-2 py-1 ${
+                scale === "log"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              Log
+            </button>
+            <button
+              onClick={() => setScale("linear")}
+              className={`px-2 py-1 ${
+                scale === "linear"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              Linear
+            </button>
+          </div>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart
-          data={combinedData}
-          margin={{
-            top: 10,
-            right: 16,
-            left: 16,
-            bottom: 40,
-          }}
-        >
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="currentColor"
-            opacity={0.1}
-          />
-          <XAxis
-            dataKey="date"
-            tick={{
-              fontSize: 12,
-              // @ts-expect-error recharts types are wrong
-              angle: -45,
-              textAnchor: "end",
-              dy: 5,
-              fill: "currentColor",
-              opacity: 0.65,
-            }}
-            stroke="currentColor"
-            opacity={0.2}
-            tickFormatter={getFormatter("MMM yyyy")}
-          />
-          <YAxis
-            width={45}
-            scale={scale}
-            tick={{
-              fontSize: 12,
-              fill: "currentColor",
-              opacity: 0.65,
-            }}
-            stroke="currentColor"
-            opacity={0.2}
-            domain={
-              scale === "log"
-                ? [yearToLogValue(Y_MIN), yearToLogValue(Y_MAX)]
-                : [Y_MIN, Y_MAX]
-            }
-            tickFormatter={(value) =>
-              scale === "log"
-                ? String(logValueToYear(value))
-                : String(Math.round(value))
-            }
-          />
-          <Tooltip
-            content={({ active, payload, label }) => {
-              if (!active || !payload?.length) return null;
-
-              // Filter out the combinedRange from the main entries
-              const lineEntries = payload.filter(
-                (entry) => entry.dataKey !== "combinedRange",
-              );
-
-              // Find the combined range entry
-              const rangeEntry = payload.find(
-                (entry) => entry.dataKey === "combinedRange",
-              );
-              const range = rangeEntry?.value as [number, number] | undefined;
-
-              return (
-                <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                  <p className="mb-2 font-medium text-gray-900 dark:text-gray-100">
-                    {format(new Date(label), "MMM d, yyyy")}
-                  </p>
-                  <div className="space-y-1">
-                    {lineEntries.map((entry) => (
-                      <div
-                        key={entry.dataKey}
-                        className="flex items-center gap-2"
-                      >
-                        <div
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          {entry.name}:
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {scale === "log" && typeof entry.value === "number"
-                            ? logValueToYear(entry.value)
-                            : entry.value}
-                        </span>
-                      </div>
-                    ))}
-                    {range && (
-                      <div className="flex items-center gap-2 border-t border-gray-200 pt-1 dark:border-gray-600">
-                        <div
-                          className="h-3 w-3 rounded-full"
-                          style={{ backgroundColor: GRAPH_COLORS.index }}
-                        />
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          Combined range:
-                        </span>
-                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {scale === "log"
-                            ? `${logValueToYear(range[0])}-${logValueToYear(range[1])}`
-                            : `${range[0]}-${range[1]}`}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            }}
-          />
-          <Legend
-            verticalAlign="top"
-            height={36}
-            wrapperStyle={{ paddingBottom: 10 }}
-            formatter={(value) => (
-              <span className="text-xs text-gray-600 dark:text-gray-300">
-                {value}
-              </span>
-            )}
-            iconSize={12}
-            payload={[
-              ...sources.map((source) => ({
-                value: source.name,
-                type: "line" as const,
-                color: source.color,
-              })),
-              {
-                value: "Combined Confidence Interval",
-                type: "square",
-                color: GRAPH_COLORS.index,
-              },
-            ]}
-          />
-          {/* Combined confidence interval area (behind lines) */}
-          <Area
-            type="monotone"
-            dataKey="combinedRange"
-            name="Combined Confidence Interval"
-            fill={GRAPH_COLORS.index}
-            fillOpacity={0.2}
-            stroke="none"
-            connectNulls
-            isAnimationActive={false}
-          />
-          {/* Render source lines */}
-          {sources.map((source) => {
-            const safeKey = toSafeKey(source.name);
-            return (
-              <Line
-                key={safeKey}
-                type="monotone"
-                dataKey={safeKey}
-                name={source.name}
-                stroke={source.color}
-                strokeWidth={2}
-                dot={false}
-                connectNulls
-                isAnimationActive={false}
-              />
-            );
-          })}
-        </ComposedChart>
-      </ResponsiveContainer>
     </div>
   );
 }
