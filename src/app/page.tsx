@@ -11,6 +11,7 @@ import { CustomTooltip } from "@/components/CustomTooltip";
 import { GraphTitle } from "@/components/GraphTitle";
 import Image from "next/image";
 import { CombinedForecastChart } from "@/components/CombinedForecastChart";
+import { GraphFooter } from "@/components/GraphFooter";
 import { GRAPH_COLORS, SOURCE_NAMES } from "@/lib/constants";
 
 export const runtime = "nodejs";
@@ -197,6 +198,13 @@ export default async function ServerRenderedPage() {
                 />
               }
             />
+            <GraphFooter
+              sourceName="Metaculus"
+              sourceUrl="https://www.metaculus.com/questions/3479/date-weakly-general-ai-is-publicly-known/"
+              data={metWeaklyGeneralAI?.datapoints || []}
+              filename="metaculus-weak-agi.csv"
+              isTimestamp={true}
+            />
           </div>
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
@@ -267,6 +275,13 @@ export default async function ServerRenderedPage() {
                   labelFormatter="MMM d, yyyy"
                 />
               }
+            />
+            <GraphFooter
+              sourceName="Metaculus"
+              sourceUrl="https://www.metaculus.com/questions/5121/date-of-artificial-general-intelligence/"
+              data={fullAgiData?.datapoints || []}
+              filename="metaculus-full-agi.csv"
+              isTimestamp={true}
             />
           </div>
 
@@ -339,6 +354,13 @@ export default async function ServerRenderedPage() {
                 />
               }
             />
+            <GraphFooter
+              sourceName="Metaculus"
+              sourceUrl="https://www.metaculus.com/questions/11861/when-will-ai-pass-a-difficult-turing-test/"
+              data={turingTestData?.datapoints || []}
+              filename="metaculus-turing-test.csv"
+              isTimestamp={true}
+            />
           </div>
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
@@ -396,6 +418,13 @@ export default async function ServerRenderedPage() {
                 tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
               />
             )}
+            <GraphFooter
+              sourceName="Manifold Markets"
+              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
+              data={manifoldHistoricalData?.data || []}
+              filename="manifold-agi.csv"
+              isTimestamp={false}
+            />
           </div>
         </div>
       </main>
