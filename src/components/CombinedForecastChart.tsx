@@ -296,16 +296,16 @@ export function CombinedForecastChart({
             )}
             iconSize={12}
             payload={[
-              {
-                value: "Combined Confidence Interval",
-                type: "square",
-                color: GRAPH_COLORS.index,
-              },
               ...sources.map((source) => ({
                 value: source.name,
                 type: "line" as const,
                 color: source.color,
               })),
+              {
+                value: "Combined Confidence Interval",
+                type: "square",
+                color: GRAPH_COLORS.index,
+              },
             ]}
           />
           {/* Combined confidence interval area (behind lines) */}
