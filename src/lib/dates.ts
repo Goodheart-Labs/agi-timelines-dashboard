@@ -27,6 +27,7 @@ export const formatMonthDay = createSafeDateFormatter("MMM d");
 
 type Formatter = "MMM yyyy" | "MMM d, yyyy" | "MMM d";
 type MsFormatter = "ms:yyyy" | "ms:yyyy-MM-dd";
+type NumberFormatter = "percent";
 
 export const formatters: Record<
   Formatter,
@@ -45,9 +46,18 @@ export const msFormatters: Record<
   "ms:yyyy-MM-dd": createSafeMillisecondDateFormatter("yyyy-MM-dd"),
 };
 
-export type AnyFormatter = Formatter | MsFormatter;
+export const numberFormatters: Record<NumberFormatter, (n: number) => string> =
+  {
+    percent: (n: number) => `${n}%`,
+  };
+
+export type AnyFormatter = Formatter | MsFormatter | NumberFormatter;
 
 export function getFormatter(formatter: AnyFormatter) {
+  if (formatter in numberFormatters) {
+    return numberFormatters[formatter as NumberFormatter];
+  }
+
   if (!(formatter in formatters) && !(formatter in msFormatters)) {
     return (x: string) => x;
   }

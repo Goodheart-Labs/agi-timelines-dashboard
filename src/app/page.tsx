@@ -463,8 +463,8 @@ export default async function ServerRenderedPage() {
               xAxisFormatter="MMM yyyy"
               yAxisProps={{
                 domain: [0, 100],
-                tickFormatter: (value: number) => `${value}%`,
               }}
+              yAxisFormatter="percent"
               tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
             />
             <GraphFooter
