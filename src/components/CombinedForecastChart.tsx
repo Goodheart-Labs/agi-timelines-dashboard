@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -37,7 +37,7 @@ type IndexDataPoint = {
 };
 
 const Y_MIN = 2024;
-const Y_MAX = 2060;
+const Y_MAX_CAPPED = 2060;
 const BASE_YEAR = 2024;
 
 function timestampToYear(seconds: number): number {
@@ -45,8 +45,8 @@ function timestampToYear(seconds: number): number {
   return new Date(seconds * 1000).getFullYear();
 }
 
-function clampYear(year: number): number {
-  return Math.min(Math.max(year, Y_MIN), Y_MAX);
+function clampYear(year: number, yMax: number): number {
+  return Math.min(Math.max(year, Y_MIN), yMax);
 }
 
 // Transform year to "years from base" for log scale (add 1 to avoid log(0))
@@ -72,6 +72,31 @@ export function CombinedForecastChart({
   indexData?: IndexDataPoint[];
 }) {
   const [scale, setScale] = useState<"linear" | "log">("linear");
+  const [capAt2060, setCapAt2060] = useState(true);
+
+  // Calculate the actual max year from all sources (for uncapped mode)
+  const actualMaxYear = useMemo(() => {
+    let max = Y_MIN;
+    for (const source of sources) {
+      for (const point of source.data) {
+        const value = source.isTimestamp
+          ? timestampToYear(point.value)
+          : point.value;
+        if (value > max) max = value;
+      }
+    }
+    if (indexData) {
+      for (const point of indexData) {
+        if (point.range && point.range[1] > max) {
+          max = point.range[1];
+        }
+      }
+    }
+    // Round up to nearest 10 for nicer axis
+    return Math.ceil(max / 10) * 10;
+  }, [sources, indexData]);
+
+  const yMax = capAt2060 ? Y_MAX_CAPPED : actualMaxYear;
 
   // Combine all data points into a single dataset, keyed by date
   const dateMap = new Map<string, CombinedDataPoint>();
@@ -93,7 +118,7 @@ export function CombinedForecastChart({
       const rawValue = source.isTimestamp
         ? timestampToYear(point.value)
         : point.value;
-      existing[safeKey] = clampYear(rawValue);
+      existing[safeKey] = clampYear(rawValue, yMax);
     }
   }
 
@@ -106,10 +131,10 @@ export function CombinedForecastChart({
     for (const point of indexData) {
       if (point.range) {
         const dateKey = point.date.split("T")[0];
-        // Clamp the range values to Y_MIN and Y_MAX
+        // Clamp the range values to Y_MIN and yMax
         indexMap.set(dateKey, [
-          clampYear(point.range[0]),
-          clampYear(point.range[1]),
+          clampYear(point.range[0], yMax),
+          clampYear(point.range[1], yMax),
         ]);
       }
     }
@@ -192,8 +217,8 @@ export function CombinedForecastChart({
               opacity={0.2}
               domain={
                 scale === "log"
-                  ? [yearToLogValue(Y_MIN), yearToLogValue(Y_MAX)]
-                  : [Y_MIN, Y_MAX]
+                  ? [yearToLogValue(Y_MIN), yearToLogValue(yMax)]
+                  : [Y_MIN, yMax]
               }
               tickFormatter={(value) =>
                 scale === "log"
@@ -404,6 +429,28 @@ export function CombinedForecastChart({
             Download data
           </button>
 
+          <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
+            <button
+              onClick={() => setCapAt2060(true)}
+              className={`px-2 py-1 ${
+                capAt2060
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              2060
+            </button>
+            <button
+              onClick={() => setCapAt2060(false)}
+              className={`px-2 py-1 ${
+                !capAt2060
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              }`}
+            >
+              Full
+            </button>
+          </div>
           <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
             <button
               onClick={() => setScale("log")}

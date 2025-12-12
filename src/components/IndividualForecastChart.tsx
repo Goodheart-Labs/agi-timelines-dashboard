@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -16,15 +16,15 @@ import { ChartDataPoint } from "../lib/types";
 import { getFormatter } from "@/lib/dates";
 
 const Y_MIN = 2024;
-const Y_MAX = 2060;
+const Y_MAX_CAPPED = 2060;
 const BASE_YEAR = 2024;
 
 function timestampToYear(seconds: number): number {
   return new Date(seconds * 1000).getFullYear();
 }
 
-function clampYear(year: number): number {
-  return Math.min(Math.max(year, Y_MIN), Y_MAX);
+function clampYear(year: number, yMax: number): number {
+  return Math.min(Math.max(year, Y_MIN), yMax);
 }
 
 // Transform year to "years from base" for log scale (add 1 to avoid log(0))
@@ -60,29 +60,51 @@ export function IndividualForecastChart({
   filename,
 }: IndividualForecastChartProps) {
   const [scale, setScale] = useState<"linear" | "log">("linear");
+  const [capAt2060, setCapAt2060] = useState(true);
 
-  // Process data: convert timestamps to years and clamp to bounds
-  const processedData = data.map((point) => {
-    const rawValue = isTimestamp ? timestampToYear(point.value) : point.value;
-    const clampedValue = clampYear(rawValue);
-
-    let clampedRange: [number, number] | undefined;
-    if (point.range) {
-      const rawLower = isTimestamp
-        ? timestampToYear(point.range[0])
-        : point.range[0];
-      const rawUpper = isTimestamp
-        ? timestampToYear(point.range[1])
-        : point.range[1];
-      clampedRange = [clampYear(rawLower), clampYear(rawUpper)];
+  // Calculate the actual max year from the data (for uncapped mode)
+  const actualMaxYear = useMemo(() => {
+    let max = Y_MIN;
+    for (const point of data) {
+      const value = isTimestamp ? timestampToYear(point.value) : point.value;
+      if (value > max) max = value;
+      if (point.range) {
+        const upper = isTimestamp
+          ? timestampToYear(point.range[1])
+          : point.range[1];
+        if (upper > max) max = upper;
+      }
     }
+    // Round up to nearest 10 for nicer axis
+    return Math.ceil(max / 10) * 10;
+  }, [data, isTimestamp]);
 
-    return {
-      date: point.date,
-      value: clampedValue,
-      range: clampedRange,
-    };
-  });
+  const yMax = capAt2060 ? Y_MAX_CAPPED : actualMaxYear;
+
+  // Process data: convert timestamps to years and optionally clamp to bounds
+  const processedData = useMemo(() => {
+    return data.map((point) => {
+      const rawValue = isTimestamp ? timestampToYear(point.value) : point.value;
+      const clampedValue = clampYear(rawValue, yMax);
+
+      let clampedRange: [number, number] | undefined;
+      if (point.range) {
+        const rawLower = isTimestamp
+          ? timestampToYear(point.range[0])
+          : point.range[0];
+        const rawUpper = isTimestamp
+          ? timestampToYear(point.range[1])
+          : point.range[1];
+        clampedRange = [clampYear(rawLower, yMax), clampYear(rawUpper, yMax)];
+      }
+
+      return {
+        date: point.date,
+        value: clampedValue,
+        range: clampedRange,
+      };
+    });
+  }, [data, isTimestamp, yMax]);
 
   // Transform data for log scale if needed
   const chartData =
@@ -106,8 +128,8 @@ export function IndividualForecastChart({
 
   const yDomain: [number, number] =
     scale === "log"
-      ? [yearToLogValue(Y_MIN), yearToLogValue(Y_MAX)]
-      : [Y_MIN, Y_MAX];
+      ? [yearToLogValue(Y_MIN), yearToLogValue(yMax)]
+      : [Y_MIN, yMax];
 
   const yTickFormatter = (value: number) => {
     if (scale === "log") {
@@ -239,6 +261,28 @@ export function IndividualForecastChart({
           >
             Download data
           </button>
+          <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
+            <button
+              onClick={() => setCapAt2060(true)}
+              className={`px-2 py-1 ${
+                capAt2060
+                  ? "bg-gray-200 dark:bg-gray-600"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              2060
+            </button>
+            <button
+              onClick={() => setCapAt2060(false)}
+              className={`px-2 py-1 ${
+                !capAt2060
+                  ? "bg-gray-200 dark:bg-gray-600"
+                  : "hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              Full
+            </button>
+          </div>
           <div className="inline-flex rounded border border-gray-300 text-xs font-medium dark:border-gray-600">
             <button
               onClick={() => setScale("log")}
