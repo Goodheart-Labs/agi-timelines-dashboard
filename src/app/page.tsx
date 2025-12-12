@@ -33,7 +33,7 @@ export default async function ServerRenderedPage() {
         <h1 className="my-4 text-2xl font-bold md:text-5xl">
           When will we achieve AGI?{" "}
           <MobileFriendlyTooltip>
-            Artificial General Intelligence (AGI) demotes a highly competent
+            Artificial General Intelligence (AGI) denotes a highly competent
             computer system that can perform a broad set of human tasks.
             Definitions vary both as to the quality of performance (from median
             human to as good as the best humans) and the range (from most tasks
