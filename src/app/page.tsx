@@ -613,6 +613,29 @@ export default async function ServerRenderedPage() {
           </span>
         </div>
 
+        <div className="mb-1">
+          Funded by{" "}
+          <a
+            href="https://en.wikipedia.org/wiki/Jaan_Tallinn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600"
+          >
+            Jaan Tallinn
+          </a>
+        </div>
+
+        <div className="mb-1">
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600"
+          >
+            CC BY 4.0
+          </a>
+        </div>
+
         <span>&nbsp;</span>
       </footer>
     </div>
