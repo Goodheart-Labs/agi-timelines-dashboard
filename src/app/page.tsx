@@ -53,9 +53,9 @@ export default async function ServerRenderedPage() {
               </span>
               {indexData[indexData.length - 1].range && (
                 <span className="mb-3 block text-base text-gray-500 dark:text-gray-400">
-                  80% confidence interval:{" "}
+                  80% confidence interval: (
                   {indexData[indexData.length - 1].range![0]}–
-                  {indexData[indexData.length - 1].range![1]}
+                  {indexData[indexData.length - 1].range![1]})
                 </span>
               )}
               Our combined forecast estimates AGI will arrive in{" "}
