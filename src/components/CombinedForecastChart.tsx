@@ -289,8 +289,8 @@ export function CombinedForecastChart({
             />
             <Legend
               verticalAlign="top"
-              height={50}
-              wrapperStyle={{ paddingBottom: 10, lineHeight: "1.5" }}
+              height={65}
+              wrapperStyle={{ paddingBottom: 15, lineHeight: "1.8" }}
               formatter={(value) => (
                 <span className="text-[10px] text-gray-600 sm:text-xs dark:text-gray-300">
                   {value}
@@ -304,7 +304,7 @@ export function CombinedForecastChart({
                   color: source.color,
                 })),
                 {
-                  value: "Combined Confidence Interval",
+                  value: "Confidence Interval",
                   type: "square",
                   color: GRAPH_COLORS.index,
                 },
