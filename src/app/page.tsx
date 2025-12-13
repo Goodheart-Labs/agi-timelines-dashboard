@@ -1,7 +1,7 @@
-import { createIndex } from "@/lib/createIndex";
-import { fetchKalshiData } from "@/lib/services/kalshi.server";
 import { getManifoldHistoricalData } from "@/lib/services/manifold-historical.server";
 import { downloadMetaculusData } from "@/lib/services/metaculus-download.server";
+import { fetchKalshiData } from "@/lib/services/kalshi.server";
+import { createIndex } from "@/lib/createIndex";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { ChevronDownIcon } from "lucide-react";
 import { MobileFriendlyTooltip } from "@/components/MobileFriendlyTooltip";
@@ -10,13 +10,10 @@ import { format } from "date-fns";
 import { CustomTooltip } from "@/components/CustomTooltip";
 import { GraphTitle } from "@/components/GraphTitle";
 import Image from "next/image";
-import { CSSProperties } from "react";
-import {
-  GRAPH_COLORS,
-  INDEX_BAR_HEIGHT,
-  INDEX_CUTOFF_DATE,
-  SOURCE_NAMES,
-} from "@/lib/constants";
+import { CombinedForecastChart } from "@/components/CombinedForecastChart";
+import { GraphFooter } from "@/components/GraphFooter";
+import { IndividualForecastChart } from "@/components/IndividualForecastChart";
+import { GRAPH_COLORS, SOURCE_NAMES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -24,13 +21,13 @@ export const dynamic = "force-static";
 
 export default async function ServerRenderedPage() {
   const {
-    indexData,
     manifoldHistoricalData,
     metWeaklyGeneralAI,
     turingTestData,
     fullAgiData,
     kalshiData,
-  } = await getIndexData();
+    indexData,
+  } = await getForecastData();
 
   return (
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
@@ -38,7 +35,7 @@ export default async function ServerRenderedPage() {
         <h1 className="my-4 text-2xl font-bold md:text-5xl">
           When will we achieve AGI?{" "}
           <MobileFriendlyTooltip>
-            Artificial General Intelligence (AGI) demotes a highly competent
+            Artificial General Intelligence (AGI) denotes a highly competent
             computer system that can perform a broad set of human tasks.
             Definitions vary both as to the quality of performance (from median
             human to as good as the best humans) and the range (from most tasks
@@ -48,152 +45,99 @@ export default async function ServerRenderedPage() {
             the FAQ for more.
           </MobileFriendlyTooltip>
         </h1>
-        <p className="mb-4 min-h-[108px] text-2xl text-gray-700 dark:text-gray-300">
-          {!indexData.data.length ? (
-            "Loading timeline assessment..."
+        <p className="mb-4 text-2xl text-gray-700 dark:text-gray-300">
+          {indexData && indexData.length > 0 ? (
+            <>
+              <span className="mb-2 block text-5xl font-bold sm:text-7xl">
+                {indexData[indexData.length - 1].value}
+              </span>
+              {indexData[indexData.length - 1].range && (
+                <span className="mb-3 block text-base text-gray-500 dark:text-gray-400">
+                  (80% confidence: {indexData[indexData.length - 1].range![0]} –{" "}
+                  {indexData[indexData.length - 1].range![1]})
+                </span>
+              )}
+              Our combined forecast estimates AGI will arrive in{" "}
+              {indexData[indexData.length - 1].value}, as of{" "}
+              {format(new Date(), "MMMM d, yyyy")}.
+            </>
           ) : (
             <>
-              <span className="mb-4 block text-4xl font-bold sm:text-6xl">
-                {indexData.data[indexData.data.length - 1].value}
-              </span>{" "}
-              Our index estimates that Artificial General Intelligence will
-              arrive in {indexData.data[indexData.data.length - 1].value} as of{" "}
-              <span className="inline-flex items-center">
-                {format(new Date(), "MMMM d, yyyy")}
-                <MobileFriendlyTooltip>
-                  The index is an average of predictions from Metaculus and
-                  Manifold Markets. Metaculus is a forecasting community with a
-                  strong track record, while Manifold Markets is a prediction
-                  market platform. The index combines multiple definitions of
-                  AGI to provide a more robust estimate.
-                </MobileFriendlyTooltip>
-              </span>
+              Comparing forecasts from Metaculus and Manifold Markets on when
+              AGI will arrive, as of {format(new Date(), "MMMM d, yyyy")}.
             </>
           )}
         </p>
       </header>
 
-      {indexData && (
-        <div className="mx-auto mb-6 w-full max-w-6xl space-y-6">
-          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <GraphTitle
-              title="AGI Index"
-              tooltipContent={
-                <div className="space-y-2">
-                  <p>This forecast is an average of the following forecasts:</p>
-                  <ul className="list-disc space-y-1 pl-4">
-                    <li>Date of &quot;weakly general AI&quot; - Metaculus</li>
-                    <li>Date of &quot;general AI&quot; - Metaculus</li>
-                    <li>When will AGI arrive? - Manifold</li>
-                    <li>
-                      Date of AI passing &quot;difficult Turing Test&quot; -
-                      Metaculus
-                    </li>
-                    <li>AI passes Turing test before 2030? - Kalshi</li>
-                  </ul>
-                  <p>
-                    For more detail, check the FAQ at the bottom of the page.
-                  </p>
-                </div>
-              }
-            >
-              <p className="text-sm text-gray-500">
-                An average of many different forecasts of AGI (shown below).
-              </p>
-            </GraphTitle>
-            <div className="relative overflow-hidden">
-              <div
-                className="index-bar-container relative"
-                style={{
-                  height: 5 * INDEX_BAR_HEIGHT,
-                  marginLeft: 60,
-                  marginRight: 16,
-                }}
-              >
-                {[
-                  {
-                    name: SOURCE_NAMES.weakAgi,
-                    startDate: indexData.startDates.weakAgi,
-                    color: GRAPH_COLORS.weakAgi,
-                  },
-                  {
-                    name: SOURCE_NAMES.fullAgi,
-                    startDate: indexData.startDates.fullAgi,
-                    color: GRAPH_COLORS.fullAgi,
-                  },
-                  {
-                    name: SOURCE_NAMES.turingTest,
-                    startDate: indexData.startDates.turingTest,
-                    color: GRAPH_COLORS.turingTest,
-                  },
-                  {
-                    name: SOURCE_NAMES.manifold,
-                    startDate: indexData.startDates.manifold,
-                    color: GRAPH_COLORS.manifold,
-                  },
-                  {
-                    name: SOURCE_NAMES.kalshi,
-                    startDate: indexData.startDates.kalshi,
-                    color: GRAPH_COLORS.kalshi,
-                  },
-                ]
-                  .sort((a, b) => a.startDate - b.startDate)
-                  .map((source, index) => {
-                    const startDate = new Date(source.startDate);
-                    const endDate = new Date();
-                    const totalRange =
-                      endDate.getTime() -
-                      new Date(INDEX_CUTOFF_DATE).getTime();
-                    const startOffset =
-                      ((startDate.getTime() -
-                        new Date(INDEX_CUTOFF_DATE).getTime()) /
-                        totalRange) *
-                      100;
-
-                    return (
-                      <div
-                        key={source.name}
-                        className="index-bar absolute flex items-center pl-2"
-                        style={
-                          {
-                            backgroundColor: source.color,
-                            left: `${startOffset}%`,
-                            right: 0,
-                            top: index * INDEX_BAR_HEIGHT,
-                            height: INDEX_BAR_HEIGHT,
-                            "--color": source.color,
-                          } as CSSProperties
-                        }
-                      >
-                        <span className="text-[10px] font-medium text-white">
-                          {source.name}
-                        </span>
-                      </div>
-                    );
-                  })}
+      <div className="mx-auto mb-6 w-full max-w-6xl space-y-6">
+        <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+          <GraphTitle
+            title="AGI Timeline Forecasts"
+            tooltipContent={
+              <div className="space-y-2">
+                <p>
+                  This chart shows the median year predictions from four
+                  different forecasting sources:
+                </p>
+                <ul className="list-disc space-y-1 pl-4">
+                  <li>Date of &quot;weakly general AI&quot; - Metaculus</li>
+                  <li>Date of &quot;general AI&quot; - Metaculus</li>
+                  <li>
+                    Date of AI passing &quot;difficult Turing Test&quot; -
+                    Metaculus
+                  </li>
+                  <li>When will AGI arrive? - Manifold</li>
+                </ul>
+                <p>
+                  The shaded area represents uncertainty, spanning from the 10th
+                  to 90th percentile of forecasts.
+                </p>
+                <p>
+                  Each line shows how the median forecast has changed over time.
+                </p>
               </div>
-              <LineGraph
-                data={indexData.data}
-                color={GRAPH_COLORS.index}
-                label=""
-                xAxisFormatter="MMM yyyy"
-                yAxisProps={{
-                  domain: [2024, 2100],
-                }}
-                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
-                lineProps={{
-                  min: 2020,
-                  max: 2130,
-                }}
-              />
-            </div>
-          </div>
+            }
+          >
+            <p className="text-sm text-gray-500">
+              Median year predictions from multiple forecasting sources.
+            </p>
+          </GraphTitle>
+          <CombinedForecastChart
+            sources={[
+              {
+                name: SOURCE_NAMES.weakAgi,
+                data: metWeaklyGeneralAI?.datapoints || [],
+                color: GRAPH_COLORS.weakAgi,
+                isTimestamp: true,
+              },
+              {
+                name: SOURCE_NAMES.fullAgi,
+                data: fullAgiData?.datapoints || [],
+                color: GRAPH_COLORS.fullAgi,
+                isTimestamp: true,
+              },
+              {
+                name: SOURCE_NAMES.turingTest,
+                data: turingTestData?.datapoints || [],
+                color: GRAPH_COLORS.turingTest,
+                isTimestamp: true,
+              },
+              {
+                name: SOURCE_NAMES.manifold,
+                data: manifoldHistoricalData?.data || [],
+                color: GRAPH_COLORS.manifold,
+                isTimestamp: false,
+              },
+            ]}
+            indexData={indexData}
+          />
         </div>
-      )}
+      </div>
 
       <main className="mx-auto w-full max-w-6xl space-y-6">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
-          Included in index:
+          Individual Forecasts:
         </h3>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -243,28 +187,14 @@ export default async function ServerRenderedPage() {
               </p>
             </GraphTitle>
 
-            <LineGraph
+            <IndividualForecastChart
               data={metWeaklyGeneralAI?.datapoints || []}
               color={GRAPH_COLORS.weakAgi}
-              key="different-data"
               label="Metaculus Prediction (Year)"
-              xAxisFormatter="MMM yyyy"
-              yAxisProps={{
-                scale: "log",
-                domain: metWeaklyGeneralAI?.question
-                  ? [
-                      metWeaklyGeneralAI.question.scaling.range_min,
-                      metWeaklyGeneralAI.question.scaling.range_max,
-                    ]
-                  : undefined,
-              }}
-              yAxisFormatter="ms:yyyy"
-              tooltip={
-                <CustomTooltip
-                  formatter="ms:yyyy-MM-dd"
-                  labelFormatter="MMM d, yyyy"
-                />
-              }
+              isTimestamp={true}
+              sourceName="Metaculus"
+              sourceUrl="https://www.metaculus.com/questions/3479/date-weakly-general-ai-is-publicly-known/"
+              filename="metaculus-weak-agi.csv"
             />
           </div>
 
@@ -315,27 +245,14 @@ export default async function ServerRenderedPage() {
                 announced?&quot;
               </p>
             </GraphTitle>
-            <LineGraph
-              data={fullAgiData ? fullAgiData.datapoints : []}
+            <IndividualForecastChart
+              data={fullAgiData?.datapoints || []}
               color={GRAPH_COLORS.fullAgi}
               label="Metaculus Prediction (Year)"
-              xAxisFormatter="MMM yyyy"
-              yAxisProps={{
-                scale: "linear",
-                domain: fullAgiData
-                  ? [
-                      fullAgiData.question.scaling.range_min,
-                      fullAgiData.question.scaling.range_max,
-                    ]
-                  : undefined,
-              }}
-              yAxisFormatter="ms:yyyy"
-              tooltip={
-                <CustomTooltip
-                  formatter="ms:yyyy-MM-dd"
-                  labelFormatter="MMM d, yyyy"
-                />
-              }
+              isTimestamp={true}
+              sourceName="Metaculus"
+              sourceUrl="https://www.metaculus.com/questions/5121/date-of-artificial-general-intelligence/"
+              filename="metaculus-full-agi.csv"
             />
           </div>
 
@@ -386,27 +303,14 @@ export default async function ServerRenderedPage() {
                 test?&quot;
               </p>
             </GraphTitle>
-            <LineGraph
-              data={turingTestData ? turingTestData.datapoints : []}
+            <IndividualForecastChart
+              data={turingTestData?.datapoints || []}
               color={GRAPH_COLORS.turingTest}
               label="Metaculus Prediction (Year)"
-              xAxisFormatter="MMM yyyy"
-              yAxisProps={{
-                scale: "linear",
-                domain: turingTestData
-                  ? [
-                      turingTestData.question.scaling.range_min,
-                      turingTestData.question.scaling.range_max,
-                    ]
-                  : undefined,
-              }}
-              yAxisFormatter="ms:yyyy"
-              tooltip={
-                <CustomTooltip
-                  formatter="ms:yyyy-MM-dd"
-                  labelFormatter="MMM d, yyyy"
-                />
-              }
+              isTimestamp={true}
+              sourceName="Metaculus"
+              sourceUrl="https://www.metaculus.com/questions/11861/when-will-ai-pass-a-difficult-turing-test/"
+              filename="metaculus-turing-test.csv"
             />
           </div>
 
@@ -453,79 +357,62 @@ export default async function ServerRenderedPage() {
                 &quot;AGI When? [High Quality Turing Test]&quot;
               </p>
             </GraphTitle>
-            {manifoldHistoricalData && (
-              <LineGraph
-                data={manifoldHistoricalData.data}
-                color={GRAPH_COLORS.manifold}
-                label="Manifold Prediction (Year)"
-                xAxisFormatter="MMM yyyy"
-                yAxisProps={{
-                  domain: [2020, 2055],
-                }}
-                tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
-              />
-            )}
+            <IndividualForecastChart
+              data={manifoldHistoricalData?.data || []}
+              color={GRAPH_COLORS.manifold}
+              label="Manifold Prediction (Year)"
+              isTimestamp={false}
+              sourceName="Manifold Markets"
+              sourceUrl="https://manifold.markets/ManifoldAI/agi-when-resolves-to-the-year-in-wh-d5c5ad8e4708"
+              filename="manifold-agi.csv"
+            />
           </div>
 
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
-              title="AI passes Turing test before 2030?"
-              sourceUrl="https://kalshi.com/markets/kxaituring/ai-turing-test"
+              title="Will AI pass the Turing Test before 2030? (Kalshi)"
+              sourceUrl="https://kalshi.com/markets/aituring/ai-passes-turing-test"
               tooltipContent={
                 <div className="space-y-2">
-                  <p>The Kalshi prediction market rules read:</p>
                   <p>
-                    &quot;If Kurzweil has won his bet that AI will pass the
-                    Turing Test by December 31, 2029, then the market resolves
-                    to Yes. Outcome verified from{" "}
-                    <a
-                      href="https://longbets.org/1/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:text-blue-600"
-                    >
-                      Long Bets Foundation
-                    </a>
-                    .&quot;
+                    This is a binary prediction market on Kalshi asking whether
+                    AI will pass a legitimate Turing test before 2030.
                   </p>
-                  <p>A summary of the rules of that bet:</p>
-                  <ul className="list-disc space-y-1 pl-4">
-                    <li>
-                      <strong>Format:</strong> 2-hour text-based interviews
-                      between judges and participants
-                    </li>
-                    <li>
-                      <strong>Participants:</strong> 3 human judges, 3 human
-                      foils, and 1 computer
-                    </li>
-                    <li>
-                      <strong>Test structure:</strong> Each judge interviews all
-                      4 participants (3 humans, 1 computer)
-                    </li>
-                    <li>
-                      <strong>Passing criteria:</strong> Computer must (1) fool
-                      at least 2 of 3 judges into thinking it&apos;s human AND
-                      (2) be ranked equal to or more human than at least 2 of
-                      the 3 human foils
-                    </li>
-                  </ul>
                   <p>
-                    This famous bet between Ray Kurzweil and Mitchell Kapor
-                    resolves in 2029, with Kurzweil betting that a computer will
-                    pass the test by then.
+                    The market resolves YES if, before January 1, 2030, a
+                    credible AI system passes a Turing test administered by a
+                    reputable organization.
+                  </p>
+                  <p>
+                    Unlike the other forecasts which predict a specific year,
+                    this shows the probability that AGI-level AI arrives before
+                    a fixed date.
                   </p>
                 </div>
               }
-            />
+            >
+              <p className="text-sm text-gray-500">
+                From the prediction market Kalshi. Shows probability (0-100%)
+                that AI passes the Turing test before 2030.
+              </p>
+            </GraphTitle>
             <LineGraph
               data={kalshiData}
               color={GRAPH_COLORS.kalshi}
-              label="Kalshi Prediction (%)"
-              xAxisFormatter="MMM d"
+              label="Kalshi Prediction (% before 2030)"
+              xAxisFormatter="MMM yyyy"
               yAxisProps={{
-                domain: [60, 80],
+                domain: [0, 100],
               }}
+              yAxisFormatter="percent"
               tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
+            />
+            <GraphFooter
+              sourceName="Kalshi"
+              sourceUrl="https://kalshi.com/markets/aituring/ai-passes-turing-test"
+              data={kalshiData}
+              filename="kalshi-turing-test.csv"
+              isTimestamp={false}
             />
           </div>
         </div>
@@ -550,22 +437,22 @@ export default async function ServerRenderedPage() {
                 <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                   <p>
                     There is significant disagreement about what constitutes
-                    AGI. Rather than pick one definition, we aggregate
-                    predictions across different definitions to capture the
-                    broader expert consensus on transformative AI timelines.
+                    AGI. Rather than pick one definition, we aggregate and
+                    display predictions across different definitions to capture
+                    the broader forecaster consensus on transformative AI
+                    timelines.
                   </p>
                   <p>
                     It is always going to be possible to argue that the set of
-                    averaged definitions is incorrectly weighted. To reduce
-                    bias I seek to accept all, long-term, repeating forecasts
+                    averaged definitions is incorrectly weighted. To reduce bias
+                    I seek to accept all, long-term or highly liquid forecasts
                     of AGI and then weight them equally. Perhaps we will
-                    down-weight some if some if a single institution releases
-                    many different AI forecasts
+                    down-weight some if a single institution releases many
+                    different AI forecasts.
                   </p>
                   <p>
                     If you disagree, please get in touch. If you know of some
-                    other repeating forecast of AGI that I have not included,
-                    let me know.
+                    other forecast of AGI that I have not included, let me know.
                   </p>
                 </div>
               </Collapsible.Content>
@@ -573,22 +460,24 @@ export default async function ServerRenderedPage() {
             <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
               <Collapsible.Trigger className="flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
                 <h4 className="text-lg font-medium">
-                  How is the AGI index calculated?
+                  How is the single date (and confidence area) created?
                 </h4>
                 <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
               </Collapsible.Trigger>
               <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
                 <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                   <p>
-                    Mostly the index is a straight average of each different
-                    source. There is one deviation and some clarifications.
+                    All of these charts are turned into a single index—the index
+                    is a straight average of each different source. There is one
+                    deviation and some clarifications.
                   </p>
                   <p>
-                    First, the Kalshi prediction. All the the other predictions
-                    are date predictions—forecasters were able to give their
-                    whole range of predictions. But the Kalshi prediction is a
-                    binary prediction—will the AI pass the Turing test before
-                    2030? It can only be answered with a yes or no.
+                    <strong>The Kalshi prediction:</strong> All the other
+                    predictions are date predictions—forecasters were able to
+                    give their whole range of predictions. But the Kalshi
+                    prediction is a binary prediction—will the AI pass the
+                    Turing test before 2030? It can only be answered with a yes
+                    or no.
                   </p>
                   <p>
                     So I took the average of the other predictions, and then
@@ -596,7 +485,7 @@ export default async function ServerRenderedPage() {
                     2030 to make them match the Kalshi prediction. This formula
                     is as follows:
                   </p>
-                  <p className="whitespace-pre-wrap font-mono text-sm">
+                  <p className="rounded bg-gray-100 p-3 font-mono text-sm dark:bg-gray-700">
                     P(AGI on date Xi, before 2030) = (average of all other
                     predictions for date Xi / average of the sum of predictions
                     on date Xi) * Kalshi P(AGI before 2030)
@@ -607,36 +496,38 @@ export default async function ServerRenderedPage() {
                   </p>
                   <p>
                     If you want a longer explanation, I&apos;ve tried putting
-                    this into claude and it seems to understand and be able to
-                    answer questions. So literaly copy the above block.
+                    this into Claude and it seems to understand and be able to
+                    answer questions. So literally copy the above block.
                   </p>
                   <p>
-                    As for the clarifications:
-                    <ul>
-                      <li>
-                        The Manifold prediction has a 2050 end date. There is a
-                        moderate bump in probability in this bucket. This should
-                        probably be clarified to mean that any time after 2049
-                        resolves to the 2050 bucket, since that seems to be
-                        what people have understood it to mean. There isn&apos;t
-                        much probability in the bucket so we have ignored this,
-                        but we could return to it.
-                      </li>
-                      <li>
-                        The date precitions have different buckets. I can&apos;t
-                        remember what we did with them but I guess we averaged
-                        across buckets. This is plausibly less accurate than
-                        fitting them to a curve and using that to do a weighted
-                        average, but we&apos;re using it for medians, 10th and
-                        90th percentiles. I doubt it makes much difference.
-                      </li>
-                    </ul>
+                    <strong>The confidence area:</strong> This is the 80% (10th
+                    and 90th) confidence interval on the lines in the chart.
+                    It&apos;s not just the union of their own 80% confidence
+                    intervals, since that would be far wider.
+                  </p>
+                  <p>
+                    <strong>The Manifold prediction:</strong> This has a 2050
+                    end date. There is a moderate bump in probability in this
+                    bucket. This should probably be clarified to mean that any
+                    time after 2049 resolves to the 2050 bucket, since that
+                    seems to be what people have understood it to mean. There
+                    isn&apos;t much probability in the bucket so we have ignored
+                    this, but we could return to it.
+                  </p>
+                  <p>
+                    <strong>Date prediction buckets:</strong> The date
+                    predictions have different buckets. I can&apos;t remember
+                    what we did with them but I guess we averaged across
+                    buckets. This is plausibly less accurate than fitting them
+                    to a curve and using that to do a weighted average, but
+                    we&apos;re using it for medians, 10th and 90th percentiles.
+                    I doubt it makes much difference.
                   </p>
                 </div>
               </Collapsible.Content>
             </Collapsible.Root>
             <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
-              <Collapsible.Trigger className="group flex w-full items-center justify-between p-4 text-left">
+              <Collapsible.Trigger className="group flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
                 <h4 className="text-lg font-medium">
                   What does this mean for me?
                 </h4>
@@ -646,9 +537,9 @@ export default async function ServerRenderedPage() {
                 <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
                   <p>
                     This site isn&apos;t here to tell you what to do about
-                    Artificial General Intelligence. But seeing our prediction
-                    of when it will arrive could cause you to make different
-                    choices.
+                    Artificial General Intelligence. But seeing these
+                    predictions of when it will arrive could cause you to make
+                    different choices.
                   </p>
                   <p>
                     Whatever the current date is, that&apos;s my, Nathan
@@ -656,6 +547,29 @@ export default async function ServerRenderedPage() {
                     will do human work. I think that this world will be a
                     strange one and that it&apos;s worth preparing both
                     practically and emotionally.
+                  </p>
+                </div>
+              </Collapsible.Content>
+            </Collapsible.Root>
+            <Collapsible.Root className="rounded border border-gray-200 dark:border-gray-700">
+              <Collapsible.Trigger className="group flex w-full items-center justify-between p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-700 dark:hover:text-gray-100">
+                <h4 className="text-lg font-medium">Why 80% confidence?</h4>
+                <ChevronDownIcon className="h-5 w-5 text-gray-500 transition-transform duration-200 ease-in-out group-data-[state=open]:rotate-180" />
+              </Collapsible.Trigger>
+              <Collapsible.Content className="overflow-hidden data-[state=closed]:animate-slideUp data-[state=open]:animate-slideDown">
+                <div className="space-y-4 border-t border-gray-200 p-4 text-gray-600 dark:border-gray-700 dark:text-gray-300">
+                  <p>
+                    The 80% confidence interval is calculated using the 10th and
+                    90th percentiles from the combined forecast distribution.
+                    This means there&apos;s roughly a 10% chance AGI arrives
+                    before the lower bound and a 10% chance it arrives after the
+                    upper bound.
+                  </p>
+                  <p>
+                    We chose 80% because it provides a meaningful range without
+                    being so wide as to be uninformative. This could change in
+                    the future if there&apos;s good reason to use a different
+                    interval.
                   </p>
                 </div>
               </Collapsible.Content>
@@ -733,13 +647,36 @@ export default async function ServerRenderedPage() {
           </span>
         </div>
 
+        <div className="mb-1">
+          Funded by{" "}
+          <a
+            href="https://en.wikipedia.org/wiki/Jaan_Tallinn"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600"
+          >
+            Jaan Tallinn
+          </a>
+        </div>
+
+        <div className="mb-1">
+          <a
+            href="https://creativecommons.org/licenses/by/4.0/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600"
+          >
+            CC BY 4.0
+          </a>
+        </div>
+
         <span>&nbsp;</span>
       </footer>
     </div>
   );
 }
 
-async function getIndexData() {
+async function getForecastData() {
   const [
     fullAgiData,
     metWeaklyGeneralAI,
@@ -761,11 +698,6 @@ async function getIndexData() {
     }),
   ]);
 
-  let indexData: null | {
-    data: Awaited<ReturnType<typeof createIndex>>["data"];
-    startDates: Awaited<ReturnType<typeof createIndex>>["startDates"];
-  } = null;
-
   if (
     metWeaklyGeneralAI.status === "fulfilled" &&
     fullAgiData.status === "fulfilled" &&
@@ -773,7 +705,8 @@ async function getIndexData() {
     manifoldHistoricalData.status === "fulfilled" &&
     kalshiData.status === "fulfilled"
   ) {
-    indexData = createIndex(
+    // Compute the index with all sources including Kalshi
+    const { data: indexData } = createIndex(
       metWeaklyGeneralAI.value,
       fullAgiData.value,
       turingTestData.value,
@@ -782,12 +715,12 @@ async function getIndexData() {
     );
 
     return {
-      indexData,
       metWeaklyGeneralAI: metWeaklyGeneralAI.value,
       fullAgiData: fullAgiData.value,
       turingTestData: turingTestData.value,
       manifoldHistoricalData: manifoldHistoricalData.value,
       kalshiData: kalshiData.value,
+      indexData,
     };
   }
 
@@ -798,10 +731,13 @@ async function getIndexData() {
         ? metWeaklyGeneralAI.reason
         : null,
     fullAgiData: fullAgiData.status === "rejected" ? fullAgiData.reason : null,
+    turingTestData:
+      turingTestData.status === "rejected" ? turingTestData.reason : null,
     manifoldHistoricalData:
       manifoldHistoricalData.status === "rejected"
         ? manifoldHistoricalData.reason
         : null,
+    kalshiData: kalshiData.status === "rejected" ? kalshiData.reason : null,
   };
 
   console.error(`Error fetching data: ${JSON.stringify(failures)}`);
