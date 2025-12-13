@@ -88,7 +88,13 @@ export default async function ServerRenderedPage() {
                     Metaculus
                   </li>
                   <li>When will AGI arrive? - Manifold</li>
+                  <li>AI passes Turing test before 2030? - Kalshi</li>
                 </ul>
+                <p>
+                  The solid line shows the median (50th percentile) prediction.
+                  The shaded area represents uncertainty, spanning from the 10th
+                  to 90th percentile of forecasts.
+                </p>
                 <p>
                   Each line shows how the median forecast has changed over time.
                 </p>
@@ -435,7 +441,8 @@ export default async function ServerRenderedPage() {
                     There is significant disagreement about what constitutes
                     AGI. Rather than pick one definition, we aggregate and
                     display predictions across different definitions to capture
-                    the broader expert consensus on transformative AI timelines.
+                    the broader forecaster consensus on transformative AI
+                    timelines.
                   </p>
                   <p>
                     It is always going to be possible to argue that the set of
