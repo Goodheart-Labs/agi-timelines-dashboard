@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -73,6 +73,14 @@ export function CombinedForecastChart({
 }) {
   const [scale, setScale] = useState<"linear" | "log">("linear");
   const [capAt2060, setCapAt2060] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Calculate the actual max year from all sources (for uncapped mode)
   const actualMaxYear = useMemo(() => {
@@ -289,14 +297,17 @@ export function CombinedForecastChart({
             />
             <Legend
               verticalAlign="top"
-              height={65}
-              wrapperStyle={{ paddingBottom: 15, lineHeight: "1.8" }}
+              height={isMobile ? 65 : 36}
+              wrapperStyle={{
+                paddingBottom: isMobile ? 15 : 10,
+                lineHeight: isMobile ? "1.8" : "1.5",
+              }}
               formatter={(value) => (
                 <span className="text-[10px] text-gray-600 sm:text-xs dark:text-gray-300">
                   {value}
                 </span>
               )}
-              iconSize={10}
+              iconSize={isMobile ? 10 : 12}
               payload={[
                 ...sources.map((source) => ({
                   value: source.name,
@@ -304,7 +315,9 @@ export function CombinedForecastChart({
                   color: source.color,
                 })),
                 {
-                  value: "Confidence Interval",
+                  value: isMobile
+                    ? "Confidence Interval"
+                    : "Combined Confidence Interval",
                   type: "square",
                   color: GRAPH_COLORS.index,
                 },
