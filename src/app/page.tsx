@@ -88,10 +88,8 @@ export default async function ServerRenderedPage() {
                     Metaculus
                   </li>
                   <li>When will AGI arrive? - Manifold</li>
-                  <li>AI passes Turing test before 2030? - Kalshi</li>
                 </ul>
                 <p>
-                  The solid line shows the median (50th percentile) prediction.
                   The shaded area represents uncertainty, spanning from the 10th
                   to 90th percentile of forecasts.
                 </p>
