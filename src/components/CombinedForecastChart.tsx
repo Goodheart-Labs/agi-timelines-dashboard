@@ -289,14 +289,14 @@ export function CombinedForecastChart({
             />
             <Legend
               verticalAlign="top"
-              height={36}
-              wrapperStyle={{ paddingBottom: 10 }}
+              height={50}
+              wrapperStyle={{ paddingBottom: 10, lineHeight: "1.5" }}
               formatter={(value) => (
-                <span className="text-xs text-gray-600 dark:text-gray-300">
+                <span className="text-[10px] text-gray-600 sm:text-xs dark:text-gray-300">
                   {value}
                 </span>
               )}
-              iconSize={12}
+              iconSize={10}
               payload={[
                 ...sources.map((source) => ({
                   value: source.name,
@@ -343,7 +343,7 @@ export function CombinedForecastChart({
       </div>
 
       {/* Footer with controls and data source */}
-      <div className="mt-2 flex items-center justify-between border-t border-gray-200 pt-2 text-xs text-gray-500 dark:border-gray-700 dark:text-gray-400">
+      <div className="mt-2 flex flex-col gap-2 border-t border-gray-200 pt-2 text-xs text-gray-500 sm:flex-row sm:items-center sm:justify-between dark:border-gray-700 dark:text-gray-400">
         <div>
           <span>Data sources: </span>
           <a
@@ -374,7 +374,7 @@ export function CombinedForecastChart({
           </a>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={() => {
               const csvRows = [
