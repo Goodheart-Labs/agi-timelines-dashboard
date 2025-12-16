@@ -29,7 +29,7 @@ export const metadata: Metadata = {
         url: "/opengraph-image.png",
         width: 1200,
         height: 630,
-        alt: "When will we achieve AGI? agi.goodheartlabs.com dashboard preview",
+        alt: "When might we achieve AGI? agi.goodheartlabs.com dashboard preview",
       },
     ],
     type: "website",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/twitter-image.png",
-        alt: "When will we achieve AGI? agi.goodheartlabs.com dashboard preview",
+        alt: "When might we achieve AGI? agi.goodheartlabs.com dashboard preview",
       },
     ],
   },
