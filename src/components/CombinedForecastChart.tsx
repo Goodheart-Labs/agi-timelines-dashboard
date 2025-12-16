@@ -64,6 +64,39 @@ function toSafeKey(name: string): string {
   return name.replace(/[^a-zA-Z0-9]/g, "_");
 }
 
+// Short names for mobile legend
+const SHORT_NAMES: Record<string, string> = {
+  "Metaculus (Weak AGI)": "Weak AGI",
+  "Metaculus (Full AGI)": "Full AGI",
+  "Metaculus (Turing)": "Turing Test",
+  Manifold: "Manifold",
+};
+
+function MobileLegend({ sources }: { sources: ForecastSource[] }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-x-3 gap-y-1 px-2 text-[11px]">
+      {sources.map((source) => (
+        <div key={source.name} className="flex items-center gap-1">
+          <div
+            className="h-2 w-3 rounded-sm"
+            style={{ backgroundColor: source.color }}
+          />
+          <span className="text-gray-600 dark:text-gray-300">
+            {SHORT_NAMES[source.name] || source.name}
+          </span>
+        </div>
+      ))}
+      <div className="flex items-center gap-1">
+        <div
+          className="h-2 w-3 rounded-sm"
+          style={{ backgroundColor: GRAPH_COLORS.index, opacity: 0.5 }}
+        />
+        <span className="text-gray-600 dark:text-gray-300">80% Range</span>
+      </div>
+    </div>
+  );
+}
+
 export function CombinedForecastChart({
   sources,
   indexData,
@@ -296,18 +329,22 @@ export function CombinedForecastChart({
               }}
             />
             <Legend
-              verticalAlign="top"
-              height={isMobile ? 65 : 36}
+              verticalAlign={isMobile ? "bottom" : "top"}
+              height={isMobile ? 80 : 36}
               wrapperStyle={{
-                paddingBottom: isMobile ? 15 : 10,
-                lineHeight: isMobile ? "1.8" : "1.5",
+                paddingTop: isMobile ? 10 : 0,
+                paddingBottom: isMobile ? 0 : 10,
+                lineHeight: "1.5",
               }}
+              content={
+                isMobile ? <MobileLegend sources={sources} /> : undefined
+              }
               formatter={(value) => (
-                <span className="text-[10px] text-gray-600 sm:text-xs dark:text-gray-300">
+                <span className="text-xs text-gray-600 dark:text-gray-300">
                   {value}
                 </span>
               )}
-              iconSize={isMobile ? 10 : 12}
+              iconSize={12}
               payload={[
                 ...sources.map((source) => ({
                   value: source.name,
@@ -315,9 +352,7 @@ export function CombinedForecastChart({
                   color: source.color,
                 })),
                 {
-                  value: isMobile
-                    ? "Confidence Interval"
-                    : "Combined Confidence Interval",
+                  value: "Combined Confidence Interval",
                   type: "square",
                   color: GRAPH_COLORS.index,
                 },

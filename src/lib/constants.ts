@@ -43,3 +43,12 @@ export const SOURCE_NAMES = {
   manifold: "Manifold",
   kalshi: "Kalshi",
 } as const;
+
+// Short source names for mobile displays
+export const SOURCE_NAMES_SHORT = {
+  weakAgi: "Weak AGI",
+  fullAgi: "Full AGI",
+  turingTest: "Turing Test",
+  manifold: "Manifold",
+  kalshi: "Kalshi",
+} as const;
