@@ -52,7 +52,7 @@ export default async function ServerRenderedPage() {
                 {indexData[indexData.length - 1].value}
               </span>
               {indexData[indexData.length - 1].range && (
-                <span className="mb-3 block text-lg text-gray-500 dark:text-gray-400">
+                <span className="mb-3 block text-xl text-gray-500 dark:text-gray-400">
                   (80% confidence: {indexData[indexData.length - 1].range![0]} –{" "}
                   {indexData[indexData.length - 1].range![1]})
                 </span>
