@@ -7,7 +7,7 @@ export async function fetchKalshiData({
   marketId,
   period_interval,
 }: {
-  marketId: string;
+  marketId?: string;
   marketTicker: string;
   seriesTicker?: string;
   period_interval: number;
@@ -28,7 +28,7 @@ async function fetchFromAPI({
   marketId,
   period_interval,
 }: {
-  marketId: string;
+  marketId?: string;
   marketTicker: string;
   seriesTicker?: string;
   period_interval: number;
@@ -41,8 +41,12 @@ async function fetchFromAPI({
     new Date(marketData.market.close_time).getTime() / 1000,
   );
 
+  // Use the ticker from the market data if no marketId is provided
+  const actualMarketId = marketId || marketData.market.ticker;
+  const actualSeriesTicker = seriesTicker || marketData.market.series_ticker;
+
   const candlesticks = await kalshiFetch(
-    `/series/${seriesTicker ?? marketTicker}/markets/${marketId}/candlesticks`,
+    `/series/${actualSeriesTicker}/markets/${actualMarketId}/candlesticks`,
     {
       query: {
         start_ts,
