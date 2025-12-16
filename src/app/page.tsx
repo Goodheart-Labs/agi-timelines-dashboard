@@ -33,7 +33,7 @@ export default async function ServerRenderedPage() {
     <div className="grid min-h-screen grid-rows-[auto_1fr_auto] bg-gray-100 p-6 font-[family-name:var(--font-geist-sans)] text-foreground dark:bg-gray-900">
       <header className="mx-auto mb-8 w-full max-w-6xl text-center">
         <h1 className="my-4 text-2xl font-bold md:text-5xl">
-          When will we achieve AGI?{" "}
+          When might we achieve AGI?{" "}
           <MobileFriendlyTooltip>
             Artificial General Intelligence (AGI) denotes a highly competent
             computer system that can perform a broad set of human tasks.
@@ -52,7 +52,7 @@ export default async function ServerRenderedPage() {
                 {indexData[indexData.length - 1].value}
               </span>
               {indexData[indexData.length - 1].range && (
-                <span className="mb-3 block text-base text-gray-500 dark:text-gray-400">
+                <span className="mb-3 block text-lg text-gray-500 dark:text-gray-400">
                   (80% confidence: {indexData[indexData.length - 1].range![0]} –{" "}
                   {indexData[indexData.length - 1].range![1]})
                 </span>
