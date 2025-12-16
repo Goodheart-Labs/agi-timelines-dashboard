@@ -27,7 +27,6 @@ export default async function ServerRenderedPage() {
     turingTestData,
     fullAgiData,
     kalshiData,
-    kalshiOpenAIData,
     polymarketOpenAIData,
     indexData,
   } = await getForecastData();
@@ -423,38 +422,6 @@ export default async function ServerRenderedPage() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
-              title="OpenAI achieves AGI"
-              sourceUrl="https://kalshi.com/markets/kxoaiagi/openai-achieves-agi"
-              tooltipContent={
-                <div className="space-y-2">
-                  <p>From the Kalshi prediction market:</p>
-                  <p>
-                    This market resolves based on whether OpenAI publicly
-                    announces that it has achieved Artificial General
-                    Intelligence (AGI) before the market&apos;s expiration date.
-                  </p>
-                </div>
-              }
-            >
-              <p className="text-sm text-gray-500">
-                From Kalshi prediction market - probability that OpenAI
-                announces AGI achievement.
-              </p>
-            </GraphTitle>
-            <LineGraph
-              data={kalshiOpenAIData}
-              color={GRAPH_COLORS.kalshiOpenAI}
-              label="Kalshi Prediction (%)"
-              xAxisFormatter="MMM d"
-              yAxisProps={{
-                domain: [0, 100],
-              }}
-              tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
-            />
-          </div>
-
-          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
-            <GraphTitle
               title="OpenAI announces AGI before 2027"
               sourceUrl="https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027"
               tooltipContent={
@@ -752,7 +719,6 @@ async function getForecastData() {
     turingTestData,
     manifoldHistoricalData,
     kalshiData,
-    kalshiOpenAIData,
     polymarketOpenAIData,
   ] = await Promise.allSettled([
     downloadMetaculusData(5121),
@@ -765,11 +731,6 @@ async function getForecastData() {
       seriesTicker: "KXAITURING",
       marketTicker: "AITURING",
       marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
-      period_interval: 24 * 60,
-    }),
-    fetchKalshiData({
-      seriesTicker: "KXOAIAGI",
-      marketTicker: "KXOAIAGI-25",
       period_interval: 24 * 60,
     }),
     fetchPolymarketData("openai-announces-it-has-achieved-agi-before-2027"),
@@ -797,8 +758,6 @@ async function getForecastData() {
       turingTestData: turingTestData.value,
       manifoldHistoricalData: manifoldHistoricalData.value,
       kalshiData: kalshiData.value,
-      kalshiOpenAIData:
-        kalshiOpenAIData.status === "fulfilled" ? kalshiOpenAIData.value : [],
       polymarketOpenAIData:
         polymarketOpenAIData.status === "fulfilled"
           ? polymarketOpenAIData.value
