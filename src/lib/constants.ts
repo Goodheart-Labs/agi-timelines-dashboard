@@ -30,6 +30,8 @@ export const GRAPH_COLORS = {
   turingTest: "#16a34a", // green-600
   manifold: "#9333ea", // purple-600
   kalshi: "#ea580c", // orange-600
+  kalshiOpenAI: "#0891b2", // cyan-600
+  polymarketOpenAI: "#db2777", // pink-600
   index: "#64748b", // slate-500
 } as const;
 
@@ -38,6 +40,15 @@ export const SOURCE_NAMES = {
   weakAgi: "Metaculus (Weak AGI)",
   fullAgi: "Metaculus (Full AGI)",
   turingTest: "Metaculus (Turing)",
+  manifold: "Manifold",
+  kalshi: "Kalshi",
+} as const;
+
+// Short source names for mobile displays
+export const SOURCE_NAMES_SHORT = {
+  weakAgi: "Weak AGI",
+  fullAgi: "Full AGI",
+  turingTest: "Turing Test",
   manifold: "Manifold",
   kalshi: "Kalshi",
 } as const;
