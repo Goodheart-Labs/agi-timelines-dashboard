@@ -420,10 +420,6 @@ export default async function ServerRenderedPage() {
           </div>
         </div>
 
-        <h3 className="mt-8 text-xl font-semibold text-gray-700 dark:text-gray-300">
-          Other AGI Markets:
-        </h3>
-
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
             <GraphTitle
