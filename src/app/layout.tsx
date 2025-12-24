@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { CSPostHogProvider } from "./providers";
 import "./globals.css";
+import { Providers } from "./providers";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 const geistSans = Geist({
@@ -58,9 +58,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CSPostHogProvider>
+        <Providers>
           <TooltipProvider delayDuration={100}>{children}</TooltipProvider>
-        </CSPostHogProvider>
+        </Providers>
       </body>
     </html>
   );

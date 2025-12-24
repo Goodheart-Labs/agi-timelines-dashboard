@@ -51,3 +51,4 @@ node_modules/playwright-core/.local-browsers/
 /keys
 .env*.local
 TODO.md
+.env.local
