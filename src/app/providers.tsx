@@ -13,7 +13,7 @@ const isValidKey = posthogKey && !posthogKey.includes("your_posthog_key");
 
 if (typeof window !== "undefined" && isValidKey) {
   posthog.init(posthogKey, {
-    api_host: posthogHost || "https://us.i.posthog.com",
+    api_host: posthogHost || "https://eu.i.posthog.com",
     person_profiles: "identified_only",
     capture_pageview: false, // We capture pageviews manually for Next.js App Router
     capture_pageleave: true,
