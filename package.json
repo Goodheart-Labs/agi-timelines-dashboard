@@ -35,7 +35,7 @@
     "papaparse": "^5.4.1",
     "playwright-aws-lambda": "^0.11.0",
     "playwright-core": "^1.49.1",
-    "posthog-js": "^1.203.3",
+    "posthog-js": "^1.310.1",
     "puppeteer-core": "^23.11.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
