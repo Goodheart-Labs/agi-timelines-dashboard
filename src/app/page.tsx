@@ -1,6 +1,7 @@
 import { getManifoldHistoricalData } from "@/lib/services/manifold-historical.server";
 import { downloadMetaculusData } from "@/lib/services/metaculus-download.server";
 import { fetchKalshiData } from "@/lib/services/kalshi.server";
+import { fetchPolymarketData } from "@/lib/services/polymarket.server";
 import { createIndex } from "@/lib/createIndex";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { ChevronDownIcon } from "lucide-react";
@@ -26,6 +27,7 @@ export default async function ServerRenderedPage() {
     turingTestData,
     fullAgiData,
     kalshiData,
+    polymarketOpenAIData,
     indexData,
   } = await getForecastData();
 
@@ -416,6 +418,40 @@ export default async function ServerRenderedPage() {
             />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <div className="col-span-2 rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <GraphTitle
+              title="OpenAI announces AGI before 2027"
+              sourceUrl="https://polymarket.com/event/openai-announces-it-has-achieved-agi-before-2027"
+              tooltipContent={
+                <div className="space-y-2">
+                  <p>From the Polymarket prediction market:</p>
+                  <p>
+                    This market resolves to Yes if OpenAI publicly announces
+                    that it has achieved Artificial General Intelligence (AGI)
+                    before January 1, 2027.
+                  </p>
+                </div>
+              }
+            >
+              <p className="text-sm text-gray-500">
+                From Polymarket - probability that OpenAI announces AGI before
+                2027.
+              </p>
+            </GraphTitle>
+            <LineGraph
+              data={polymarketOpenAIData}
+              color={GRAPH_COLORS.polymarketOpenAI}
+              label="Polymarket Prediction (%)"
+              xAxisFormatter="MMM d"
+              yAxisProps={{
+                domain: [0, 100],
+              }}
+              tooltip={<CustomTooltip labelFormatter="MMM d, yyyy" />}
+            />
+          </div>
+        </div>
       </main>
 
       {/* Footer */}
@@ -683,6 +719,7 @@ async function getForecastData() {
     turingTestData,
     manifoldHistoricalData,
     kalshiData,
+    polymarketOpenAIData,
   ] = await Promise.allSettled([
     downloadMetaculusData(5121),
     downloadMetaculusData(3479),
@@ -696,6 +733,7 @@ async function getForecastData() {
       marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
       period_interval: 24 * 60,
     }),
+    fetchPolymarketData("openai-announces-it-has-achieved-agi-before-2027"),
   ]);
 
   if (
@@ -720,6 +758,10 @@ async function getForecastData() {
       turingTestData: turingTestData.value,
       manifoldHistoricalData: manifoldHistoricalData.value,
       kalshiData: kalshiData.value,
+      polymarketOpenAIData:
+        polymarketOpenAIData.status === "fulfilled"
+          ? polymarketOpenAIData.value
+          : [],
       indexData,
     };
   }
