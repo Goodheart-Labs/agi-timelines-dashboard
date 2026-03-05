@@ -693,7 +693,6 @@ async function getForecastData() {
     fetchKalshiData({
       seriesTicker: "KXAITURING",
       marketTicker: "AITURING",
-      marketId: "8a66420d-4b3c-446b-bd62-8386637ad844",
       period_interval: 24 * 60,
     }),
   ]);

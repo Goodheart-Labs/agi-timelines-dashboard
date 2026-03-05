@@ -4,16 +4,13 @@ import { ChartDataPoint, KalshiResponse } from "../types";
 export async function fetchKalshiData({
   marketTicker,
   seriesTicker,
-  marketId,
   period_interval,
 }: {
-  marketId: string;
   marketTicker: string;
   seriesTicker?: string;
   period_interval: number;
 }): Promise<ChartDataPoint[]> {
   const data = await fetchFromAPI({
-    marketId,
     marketTicker,
     seriesTicker,
     period_interval,
@@ -25,10 +22,8 @@ export async function fetchKalshiData({
 async function fetchFromAPI({
   marketTicker,
   seriesTicker,
-  marketId,
   period_interval,
 }: {
-  marketId: string;
   marketTicker: string;
   seriesTicker?: string;
   period_interval: number;
@@ -42,7 +37,7 @@ async function fetchFromAPI({
   );
 
   const candlesticks = await kalshiFetch(
-    `/series/${seriesTicker ?? marketTicker}/markets/${marketId}/candlesticks`,
+    `/series/${seriesTicker ?? marketTicker}/markets/${marketTicker}/candlesticks`,
     {
       query: {
         start_ts,

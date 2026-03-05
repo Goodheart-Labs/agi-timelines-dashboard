@@ -35,10 +35,7 @@ export async function kalshiFetch(
     ...init.headers,
   };
 
-  let baseUrl: string = config.baseUrl;
-  if (path.includes("candlesticks")) {
-    baseUrl = "https://api.elections.kalshi.com/v1";
-  }
+  const baseUrl: string = config.baseUrl;
 
   const url = baseUrl + path + queryString;
 
