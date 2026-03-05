@@ -14,7 +14,7 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
         api_host: "/ingest",
         ui_host: "https://eu.posthog.com",
         person_profiles: "identified_only",
-        capture_pageview: false, // Disabled - Next.js App Router handles this
+        capture_pageview: false,
         capture_pageleave: true,
         debug: process.env.NODE_ENV === "development",
       });

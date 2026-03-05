@@ -17,7 +17,7 @@ import { GRAPH_COLORS, SOURCE_NAMES } from "@/lib/constants";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-export const dynamic = "force-static";
+export const revalidate = 1800; // Re-fetch data every 30 minutes; serves stale on failure
 
 export default async function ServerRenderedPage() {
   const {
@@ -397,7 +397,7 @@ export default async function ServerRenderedPage() {
               </p>
             </GraphTitle>
             <LineGraph
-              data={kalshiData}
+              data={kalshiData || []}
               color={GRAPH_COLORS.kalshi}
               label="Kalshi Prediction (% before 2030)"
               xAxisFormatter="MMM yyyy"
@@ -410,7 +410,7 @@ export default async function ServerRenderedPage() {
             <GraphFooter
               sourceName="Kalshi"
               sourceUrl="https://kalshi.com/markets/aituring/ai-passes-turing-test"
-              data={kalshiData}
+              data={kalshiData || []}
               filename="kalshi-turing-test.csv"
               isTimestamp={false}
             />
@@ -698,33 +698,7 @@ async function getForecastData() {
     }),
   ]);
 
-  if (
-    metWeaklyGeneralAI.status === "fulfilled" &&
-    fullAgiData.status === "fulfilled" &&
-    turingTestData.status === "fulfilled" &&
-    manifoldHistoricalData.status === "fulfilled" &&
-    kalshiData.status === "fulfilled"
-  ) {
-    // Compute the index with all sources including Kalshi
-    const { data: indexData } = createIndex(
-      metWeaklyGeneralAI.value,
-      fullAgiData.value,
-      turingTestData.value,
-      manifoldHistoricalData.value,
-      kalshiData.value,
-    );
-
-    return {
-      metWeaklyGeneralAI: metWeaklyGeneralAI.value,
-      fullAgiData: fullAgiData.value,
-      turingTestData: turingTestData.value,
-      manifoldHistoricalData: manifoldHistoricalData.value,
-      kalshiData: kalshiData.value,
-      indexData,
-    };
-  }
-
-  // Show which ones failed
+  // Log any failures but continue with partial data
   const failures = {
     metWeaklyGeneralAI:
       metWeaklyGeneralAI.status === "rejected"
@@ -740,7 +714,51 @@ async function getForecastData() {
     kalshiData: kalshiData.status === "rejected" ? kalshiData.reason : null,
   };
 
-  console.error(`Error fetching data: ${JSON.stringify(failures)}`);
+  const hasFailures = Object.values(failures).some((f) => f !== null);
+  if (hasFailures) {
+    console.warn("Some data sources failed to load:", failures);
+  }
 
-  throw new Error(`Error fetching data: ${JSON.stringify(failures)}`);
+  // Use successful data or null for failed fetches
+  const metWeaklyGeneralAIData =
+    metWeaklyGeneralAI.status === "fulfilled" ? metWeaklyGeneralAI.value : null;
+  const fullAgiDataValue =
+    fullAgiData.status === "fulfilled" ? fullAgiData.value : null;
+  const turingTestDataValue =
+    turingTestData.status === "fulfilled" ? turingTestData.value : null;
+  const manifoldHistoricalDataValue =
+    manifoldHistoricalData.status === "fulfilled"
+      ? manifoldHistoricalData.value
+      : null;
+  const kalshiDataValue =
+    kalshiData.status === "fulfilled" ? kalshiData.value : null;
+
+  // Compute the index only if all required sources are available
+  // createIndex requires all 4 main sources; Kalshi is optional (handled internally)
+  const canComputeIndex =
+    metWeaklyGeneralAIData &&
+    fullAgiDataValue &&
+    turingTestDataValue &&
+    manifoldHistoricalDataValue;
+
+  let indexData: ReturnType<typeof createIndex>["data"] = [];
+  if (canComputeIndex) {
+    const result = createIndex(
+      metWeaklyGeneralAIData,
+      fullAgiDataValue,
+      turingTestDataValue,
+      manifoldHistoricalDataValue,
+      kalshiDataValue || [],
+    );
+    indexData = result.data;
+  }
+
+  return {
+    metWeaklyGeneralAI: metWeaklyGeneralAIData,
+    fullAgiData: fullAgiDataValue,
+    turingTestData: turingTestDataValue,
+    manifoldHistoricalData: manifoldHistoricalDataValue,
+    kalshiData: kalshiDataValue,
+    indexData,
+  };
 }
