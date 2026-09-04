@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "https://www.globalriskodds.com/agi",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/redeploy",
