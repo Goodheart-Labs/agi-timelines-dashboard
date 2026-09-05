@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import extract from "extract-zip";
 import Papa from "papaparse";
+import { communityForecasts } from "./metaculus-community";
 
 type YearForecast = { year: number; cdfValue: number; pdfValue: number };
 const METACULUS_API = "https://www.metaculus.com/api";
@@ -44,12 +45,12 @@ export async function downloadMetaculusData(questionId: number) {
   await extract(zipPath, { dir: tmpDir.name });
 
   // Read and parse the files
-  const forecastData = (
+  const forecastData = communityForecasts(
     Papa.parse(
       fs.readFileSync(path.join(tmpDir.name, "forecast_data.csv"), "utf8"),
       { header: true },
-    ).data as MetaculusForecast[]
-  ).filter((row: { "Question ID": string }) => row["Question ID"]);
+    ).data as MetaculusForecast[],
+  );
 
   // Fetch question data from metaculus
   const questionData = await fetch(`${METACULUS_API}/posts/${questionId}/`, {

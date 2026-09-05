@@ -1,5 +1,6 @@
 import { ChartDataPoint, MetaculusForecast, MetaculusResponse } from "../types";
 import { getInverseTransform, getTransform } from "./metaculus";
+import { communityForecasts } from "./metaculus-community";
 
 type YearForecast = { year: number; cdfValue: number; pdfValue: number };
 
@@ -13,10 +14,11 @@ export async function downloadMetaculusData(questionId: number) {
       },
     },
   );
-  const { question, forecast: forecastData } = (await response.json()) as {
+  const { question, forecast } = (await response.json()) as {
     question: MetaculusResponse["question"];
     forecast: MetaculusForecast[];
   };
+  const forecastData = communityForecasts(forecast);
 
   const rangeStart = getStartYear(question.scaling.range_min * 1000);
   const rangeEnd = getEndYear(question.scaling.range_max * 1000);

@@ -84,7 +84,7 @@ const dashboard = unstable_cache(
       ],
     };
   },
-  ["global-risk-agi-dashboard-v1"],
+  ["global-risk-agi-dashboard-v2-community"],
   { revalidate: 1800 },
 );
 
